@@ -2,9 +2,9 @@ import mongoose from "mongoose";
 
 /**
  * Abre una conexión al arrancar. Mongoose reutiliza ese cliente en cada consulta.
- * Sin opciones de pool: un solo proceso Express de larga duración, uso personal,
- * y todavía no hay una cifra de concurrencia que justifique salir del default del driver.
+ * dbName elige la base dentro del cluster; no es un ajuste de pool.
+ * El pool queda en el default del driver: un solo proceso y sin cifra de concurrencia medida.
  */
-export function conectarDB(uri: string): Promise<typeof mongoose> {
-  return mongoose.connect(uri);
+export function conectarDB(uri: string, dbName: string): Promise<typeof mongoose> {
+  return mongoose.connect(uri, { dbName });
 }

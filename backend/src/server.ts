@@ -17,13 +17,13 @@ async function main(): Promise<void> {
   }
 
   try {
-    await conectarDB(entorno.MONGODB_URI);
+    await conectarDB(entorno.MONGODB_URI, entorno.MONGODB_DB);
   } catch (error) {
     console.error(`No se pudo conectar a Atlas: ${sinUri(error)}`);
     process.exit(1);
   }
 
-  console.log("Conectado a MongoDB");
+  console.log(`Conectado a MongoDB (base: ${entorno.MONGODB_DB})`);
   const app = crearApp(entorno.CORS_ORIGIN);
   const servidor = app.listen(entorno.PORT, () => {
     console.log(`API escuchando en http://localhost:${entorno.PORT}`);

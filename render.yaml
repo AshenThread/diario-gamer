@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: diario-gamer-api
+    runtime: node
+    rootDir: backend
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/videojuegos
+    envVars:
+      - key: MONGODB_URI
+        sync: false
+      - key: MONGODB_DB
+        value: diario_gamer
+      - key: PORT
+        value: "10000"
+      - key: CORS_ORIGIN
+        sync: false
+
+  - type: static
+    name: diario-gamer-web
+    rootDir: frontend
+    buildCommand: npm ci && npm run build
+    staticPublishPath: dist
+    envVars:
+      - key: VITE_API_URL
+        sync: false

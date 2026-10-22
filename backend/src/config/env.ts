@@ -8,6 +8,7 @@ dotenv.config({
 
 export interface Entorno {
   MONGODB_URI: string;
+  MONGODB_DB: string;
   PORT: number;
   CORS_ORIGIN: string;
 }
@@ -25,14 +26,23 @@ export function cargarEnv(): Entorno {
 
   return {
     MONGODB_URI: uri,
+    MONGODB_DB: leerBase(process.env.MONGODB_DB),
     PORT: leerPuerto(process.env.PORT),
-    CORS_ORIGIN: process.env.CORS_ORIGIN?.trim() || "http://localhost:5173",
+    CORS_ORIGIN: process.env.CORS_ORIGIN?.trim() || "http://localhost:5174",
   };
+}
+
+function leerBase(valor: string | undefined): string {
+  const nombre = valor?.trim() || "diario_gamer";
+  if (!/^[A-Za-z0-9_-]+$/.test(nombre)) {
+    throw new Error("MONGODB_DB solo puede tener letras, números, guion y guion bajo.");
+  }
+  return nombre;
 }
 
 function leerPuerto(valor: string | undefined): number {
   if (valor === undefined || valor.trim() === "") {
-    return 3000;
+    return 3001;
   }
   const puerto = Number(valor);
   if (!Number.isInteger(puerto) || puerto < 1 || puerto > 65535) {

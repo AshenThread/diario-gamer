@@ -22,7 +22,7 @@ Las capas van en este orden:
 3. **Servicio.** Las reglas: filtros, ids, errores y, en la etapa 3, el resumen de horas.
 4. **Modelo.** El esquema de Mongoose.
 
-`backend/src/config/env.ts` lee y valida `process.env`. Una variable de entorno es un valor que el proceso recibe al arrancar; en local sale del archivo `.env`. `process.env` es el objeto donde Node las deja. `backend/src/config/conexionDB.ts` llama a `mongoose.connect` con la URI que devuelve `env.ts` y no lee `process.env`.
+`backend/src/config/env.ts` lee y valida `process.env`. Una variable de entorno es un valor que el proceso recibe al arrancar; en local sale del archivo `.env`. `process.env` es el objeto donde Node las deja. `backend/src/config/conexionDB.ts` llama a `mongoose.connect` con la URI y el nombre de base que devuelve `env.ts`, y no lee `process.env`.
 
 La conexión se abre una vez al arrancar y Mongoose la reutiliza. El pool es el grupo de conexiones ya abiertas, para no repetir el enlace en cada consulta. El tamaño se queda en el default del driver: hay un solo proceso y todavía no hay una cifra de concurrencia medida.
 
@@ -127,8 +127,8 @@ Ejemplo: partidas de 50, 40 y 25 minutos. La suma es 115. `115 / 60 = 1.9166…`
 2. Crea un cluster. Un cluster es el grupo de servidores que guarda la base. El plan gratuito, llamado M0, alcanza para este diario.
 3. En **Database Access** crea un usuario de base de datos, con contraseña propia (distinta de tu cuenta de Atlas) y permiso de lectura y escritura.
 4. En **Network Access** permite tu IP actual. Network Access es la lista de direcciones desde las que Atlas acepta conexiones. Tu IP actual basta para trabajar en local. `0.0.0.0/0` abre el cluster a cualquier IP: hace falta cuando la IP cambia o, más adelante, en Render, y exige una contraseña fuerte porque la base queda alcanzable desde internet.
-5. En **Connect → Drivers** copia la URI. Sustituye `<password>` por la contraseña de ese usuario. Si la contraseña tiene `@`, `#` o `/`, codifícala para URL (`@` pasa a ser `%40`). En el path (el tramo de la URI que nombra la base) deja `diario_gamer`.
-6. Pega el resultado en `backend/.env` como `MONGODB_URI`. El archivo correcto está junto a `backend/package.json`, no en la raíz del repo.
+5. En **Connect → Drivers** copia la URI del cluster. Sustituye `<password>` por la contraseña de ese usuario. Si la contraseña tiene `@`, `#` o `/`, codifícala para URL (`@` pasa a ser `%40`).
+6. Pega la URI en `backend/.env` como `MONGODB_URI`. En `MONGODB_DB` pon el nombre de la base, `diario_gamer`. `dbName` es la opción de `mongoose.connect` que elige esa base dentro del cluster, aunque la URI traiga otro nombre en el path (el tramo después del host). El mismo cluster puede guardar varios proyectos: Pawnee usa su propio `MONGODB_DB` y este diario usa `diario_gamer`. El archivo correcto está junto a `backend/package.json`, no en la raíz del repo. Atlas crea la base al guardar el primer documento.
 
 ## Cómo correr el backend en local
 
@@ -144,7 +144,16 @@ npm install
 npm run dev
 ```
 
-`npm run dev` usa tsx, un ejecutor que corre TypeScript directamente y reinicia el proceso al guardar. La API escucha en `http://localhost:3000`. El puerto es el número de la puerta de red; lo marca `PORT`.
+`npm run dev` usa tsx, un ejecutor que corre TypeScript directamente y reinicia el proceso al guardar. El puerto es el número de la puerta de red; lo marca `PORT`. Pawnee ya usa el 3000, así que este diario escucha en `http://localhost:3001`. Si omites `PORT`, también se usa `3001`.
+
+Para cargar datos de ejemplo sin usar SQL injection ni borrar documentos existentes, ejecuta en otra terminal:
+
+```bash
+cd backend
+npm run seed
+```
+
+El seed añade Hades, Zelda: Tears of the Kingdom, Red Dead Redemption 2 y Celeste con plataformas, estados y algunos logros. Es idempotente: si ya existe la misma combinación de nombre y plataforma, la conserva y no duplica el juego. Los documentos no incluyen imágenes porque el modelo todavía no tiene un campo de imagen; el front deja un espacio cuadrado para incorporarlas después.
 
 Si falta `MONGODB_URI`, está vacía o no empieza por `mongodb://` ni `mongodb+srv://`, el proceso termina antes de escuchar.
 
@@ -155,14 +164,52 @@ Si falta `MONGODB_URI`, está vacía o no empieza por `mongodb://` ni `mongodb+s
 El archivo real es `backend/.env.example`. Cópialo a `backend/.env`. `.gitignore` es la lista de archivos que git no guarda; ahí está `.env`, así la URI no entra al repositorio.
 
 ```
-MONGODB_URI=mongodb+srv://<usuario>:<password>@<cluster>.mongodb.net/diario_gamer?retryWrites=true&w=majority
-PORT=3000
-CORS_ORIGIN=http://localhost:5173
+MONGODB_URI=mongodb+srv://<usuario>:<password>@<cluster>.mongodb.net/?retryWrites=true&w=majority
+MONGODB_DB=diario_gamer
+PORT=3001
+CORS_ORIGIN=http://localhost:5174
 ```
 
-CORS es el permiso del navegador para que una página en otro origen (otro puerto) llame a esta API. `CORS_ORIGIN` es ese origen permitido. El formulario React todavía no existe; la variable ya se lee para no reabrir el arranque en la etapa 3. Si omites `PORT`, se usa `3000`. Si omites `CORS_ORIGIN`, se usa `http://localhost:5173`.
+`MONGODB_DB` es el nombre de la base dentro del cluster. Si lo omites, se usa `diario_gamer`.
+
+CORS es el permiso del navegador para que una página en otro origen (otro puerto) llame a esta API. `CORS_ORIGIN` es ese origen permitido. El formulario vive en `http://localhost:5174`. Si omites `CORS_ORIGIN`, se usa esa misma dirección.
+
+## Cómo correr el formulario
+
+El frontend es la pantalla en React. Una sola página: crear videojuego con logros, filtrar, cambiar estado, marcar un logro y borrar. Habla con las mismas rutas `/api/videojuegos`. Vite, el servidor de desarrollo de React, reenvía `/api` al puerto 3001. El navegador no salta el middleware: Express sigue poniendo `requestId`, escribe el logger y, si algo falla, responde el `errorHandler`.
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Abre `http://localhost:5174`. El backend tiene que estar en el 3001.
 
 `<usuario>`, `<password>` y `<cluster>` son huecos para sustituir. No son una cuenta real.
+
+## Despliegue en Render
+
+El archivo `render.yaml` define los dos servicios:
+
+- `diario-gamer-api`: Web Service Node, con `backend` como raíz, `npm ci && npm run build` y `npm start`.
+- `diario-gamer-web`: Static Site, con `frontend` como raíz, `npm ci && npm run build` y publicación de `dist`.
+
+En Render, crea un **Blueprint** desde este repositorio. En el formulario de variables privadas del backend configura:
+
+```text
+MONGODB_URI=mongodb+srv://...
+MONGODB_DB=diario_gamer
+CORS_ORIGIN=https://<url-real-del-frontend>.onrender.com
+```
+
+En el frontend configura durante el build:
+
+```text
+VITE_API_URL=https://<url-real-del-backend>.onrender.com
+```
+
+`CORS_ORIGIN` debe ser exactamente el origen del frontend, sin una barra final, y `VITE_API_URL` debe ser exactamente el origen público del backend, también sin una barra final. No guardes estos valores en el repositorio: Render los mantiene en su panel. Después de guardar `VITE_API_URL`, ejecuta un nuevo deploy del Static Site para que Vite lo incorpore al bundle.
 
 ## Etapa 2
 
@@ -210,7 +257,7 @@ Mongoose suele añadir `__v`, un contador interno de cambios simultáneos. Aquí
 `curl` es el comando de terminal que hace la petición HTTP. Con `npm run dev` en marcha y la URI ya puesta en `backend/.env`:
 
 ```bash
-curl -s -X POST http://localhost:3000/api/videojuegos \
+curl -s -X POST http://localhost:3001/api/videojuegos \
   -H "Content-Type: application/json" \
   -d '{"nombre":"Hades","plataforma":"PC","estado":"jugando","logros":[{"nombre":"Primera huida","descripcion":"Escapa una vez","obtenido":false}]}'
 ```
@@ -218,19 +265,19 @@ curl -s -X POST http://localhost:3000/api/videojuegos \
 Crea el videojuego y muestra el JSON, con el `_id` del juego y el del logro.
 
 ```bash
-curl -s "http://localhost:3000/api/videojuegos?estado=jugando&plataforma=PC"
+curl -s "http://localhost:3001/api/videojuegos?estado=jugando&plataforma=PC"
 ```
 
 Lista los que están en jugando y en PC a la vez.
 
 ```bash
-curl -s http://localhost:3000/api/videojuegos/ID_DEL_JUEGO
+curl -s http://localhost:3001/api/videojuegos/ID_DEL_JUEGO
 ```
 
 Devuelve ese videojuego.
 
 ```bash
-curl -s -X PATCH http://localhost:3000/api/videojuegos/ID_DEL_JUEGO \
+curl -s -X PATCH http://localhost:3001/api/videojuegos/ID_DEL_JUEGO \
   -H "Content-Type: application/json" \
   -d '{"estado":"completado"}'
 ```
@@ -238,7 +285,7 @@ curl -s -X PATCH http://localhost:3000/api/videojuegos/ID_DEL_JUEGO \
 Cambia solo el estado. El nombre y los logros se quedan.
 
 ```bash
-curl -s -X PATCH http://localhost:3000/api/videojuegos/ID_DEL_JUEGO/logros/ID_DEL_LOGRO \
+curl -s -X PATCH http://localhost:3001/api/videojuegos/ID_DEL_JUEGO/logros/ID_DEL_LOGRO \
   -H "Content-Type: application/json" \
   -d '{"obtenido":true}'
 ```
@@ -246,7 +293,7 @@ curl -s -X PATCH http://localhost:3000/api/videojuegos/ID_DEL_JUEGO/logros/ID_DE
 Marca ese logro como obtenido.
 
 ```bash
-curl -s -i -X DELETE http://localhost:3000/api/videojuegos/ID_DEL_JUEGO
+curl -s -i -X DELETE http://localhost:3001/api/videojuegos/ID_DEL_JUEGO
 ```
 
 Borra el videojuego. La primera línea de la respuesta debe decir `204`.
@@ -257,5 +304,4 @@ Sustituye `ID_DEL_JUEGO` e `ID_DEL_LOGRO` por los valores que devolvió el POST.
 
 - Modelo Partida, con referencia a `Videojuego`, y sus rutas.
 - Resumen en el servicio: 404 si el juego no existe; ceros y null si no hay partidas; si hay, la fórmula de arriba.
-- Formulario en React para crear videojuegos.
 - Despliegue en Render: un servicio para el backend y otro para el frontend.
