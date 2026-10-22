@@ -42,7 +42,19 @@ export async function listarVideojuegos(filtro: {
   }
   const query = params.toString();
   const respuesta = await fetch(query ? `${BASE}?${query}` : BASE);
-  return manejar<Videojuego[]>(respuesta);
+  const cuerpo = await manejar<unknown>(respuesta);
+  if (Array.isArray(cuerpo)) {
+    return cuerpo as Videojuego[];
+  }
+  if (
+    cuerpo !== null &&
+    typeof cuerpo === "object" &&
+    "videojuegos" in cuerpo &&
+    Array.isArray(cuerpo.videojuegos)
+  ) {
+    return cuerpo.videojuegos as Videojuego[];
+  }
+  throw new Error("La API devolvió un formato de videojuegos no válido.");
 }
 
 export async function crearVideojuego(datos: {
