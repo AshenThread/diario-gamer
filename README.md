@@ -197,6 +197,11 @@ CORS es el permiso del navegador para que una página en otro origen (otro puert
 
 El frontend es la pantalla en React. Una sola página: crear videojuego con logros, filtrar, cambiar estado, marcar un logro y borrar. Habla con las mismas rutas `/api/videojuegos`. Vite, el servidor de desarrollo de React, reenvía `/api` al puerto 3001. El navegador no salta el middleware: Express sigue poniendo `requestId`, escribe el logger y, si algo falla, responde el `errorHandler`.
 
+En la colección, la portada, el título y **Ver ficha completa** abren la ruta
+`#/juego/:id`. Esa ficha muestra la descripción, el género, la plataforma, el
+estado, los logros, el resumen calculado y las sesiones. Se usa hash para que
+la navegación funcione directamente en Render como sitio estático.
+
 ```bash
 cd frontend
 npm install

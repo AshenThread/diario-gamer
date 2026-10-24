@@ -41,6 +41,147 @@ function textoError(error: unknown): string {
   return "No se pudo hablar con la API. ¿Está el backend en el puerto 3001?";
 }
 
+interface DetalleJuegoProps {
+  juego: Videojuego;
+  onBack: () => void;
+  onChanged: () => Promise<void>;
+}
+
+function DetalleJuego({ juego: juegoInicial, onBack, onChanged }: DetalleJuegoProps) {
+  const [juego, setJuego] = useState(juegoInicial);
+  const [resumen, setResumen] = useState<Resumen | null>(null);
+  const [partidas, setPartidas] = useState<Partida[]>([]);
+  const [cargando, setCargando] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [fecha, setFecha] = useState(FECHA_HOY);
+  const [duracion, setDuracion] = useState("60");
+  const [avance, setAvance] = useState("0");
+
+  async function cargarDetalle() {
+    setCargando(true);
+    setError(null);
+    try {
+      const [nuevoResumen, nuevasPartidas] = await Promise.all([
+        obtenerResumen(juego._id),
+        listarPartidas(juego._id),
+      ]);
+      setResumen(nuevoResumen);
+      setPartidas(nuevasPartidas);
+    } catch (err) {
+      setError(textoError(err));
+    } finally {
+      setCargando(false);
+    }
+  }
+
+  useEffect(() => {
+    void cargarDetalle();
+  }, [juego._id]);
+
+  async function cambiarLogro(logroId: string, obtenido: boolean) {
+    try {
+      const actualizado = await marcarLogro(juego._id, logroId, obtenido);
+      setJuego(actualizado);
+      await onChanged();
+    } catch (err) {
+      setError(textoError(err));
+    }
+  }
+
+  async function guardarPartida(evento: FormEvent<HTMLFormElement>) {
+    evento.preventDefault();
+    try {
+      await crearPartida({
+        videojuego: juego._id,
+        fecha: new Date(`${fecha}T12:00:00`).toISOString(),
+        duracionMinutos: Number(duracion),
+        porcentajeAvance: Number(avance),
+      });
+      await cargarDetalle();
+    } catch (err) {
+      setError(textoError(err));
+    }
+  }
+
+  return (
+    <main className="page detail-page">
+      <button type="button" className="ghost back-button" onClick={onBack}>← Volver a la colección</button>
+      <section className="detail-hero">
+        <div className="detail-cover cover-slot">
+          <img
+            src={`/img/${slugPortada(juego.nombre)}.png`}
+            alt={`Portada de ${juego.nombre}`}
+            onError={(evento) => {
+              evento.currentTarget.onerror = null;
+              evento.currentTarget.src = `/img2/${(juego._id.charCodeAt(0) % 3) + 1}.svg`;
+            }}
+          />
+        </div>
+        <div className="detail-intro">
+          <p className="eyebrow">Ficha del juego</p>
+          <h1>{juego.nombre}</h1>
+          <p className="detail-meta">{juego.genero} · {juego.plataforma} · {juego.estado}</p>
+          <p className="detail-description">{juego.descripcion || "Este juego todavía no tiene descripción."}</p>
+        </div>
+      </section>
+
+      {error ? <p className="error">{error}</p> : null}
+      {cargando ? <p className="muted">Cargando progreso…</p> : null}
+
+      <section className="detail-section">
+        <div className="section-heading">
+          <div>
+            <p className="eyebrow">Progreso calculado</p>
+            <h2>Resumen de <em>{juego.nombre}</em></h2>
+          </div>
+        </div>
+        <dl className="detail-stats">
+          <div><dt>Horas jugadas</dt><dd>{resumen?.horasTotales ?? 0}</dd></div>
+          <div><dt>Sesiones</dt><dd>{resumen?.cantidadPartidas ?? 0}</dd></div>
+          <div><dt>Avance actual</dt><dd>{resumen?.avanceActual === null || resumen?.avanceActual === undefined ? "—" : `${resumen.avanceActual}%`}</dd></div>
+          <div><dt>Última sesión</dt><dd>{resumen?.fechaUltimaSesion ? new Date(resumen.fechaUltimaSesion).toLocaleDateString("es-ES") : "—"}</dd></div>
+        </dl>
+      </section>
+
+      <section className="detail-section">
+        <p className="eyebrow">Hitos personales</p>
+        <h2>Logros <em>{juego.logros.filter((logro) => logro.obtenido).length}/{juego.logros.length}</em></h2>
+        <ul className="detail-achievements">
+          {juego.logros.map((logro) => (
+            <li key={logro._id}>
+              <label className="check">
+                <input type="checkbox" checked={logro.obtenido} onChange={(evento) => void cambiarLogro(logro._id, evento.target.checked)} />
+                <span><strong>{logro.nombre}</strong><small>{logro.descripcion}</small></span>
+              </label>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section className="detail-section">
+        <p className="eyebrow">Registro de sesiones</p>
+        <h2>Añadir una <em>partida</em></h2>
+        <form className="partida-form detail-partida-form" onSubmit={guardarPartida}>
+          <label>Fecha<input type="date" value={fecha} onChange={(evento) => setFecha(evento.target.value)} /></label>
+          <label>Minutos<input type="number" min="1" max="1440" value={duracion} onChange={(evento) => setDuracion(evento.target.value)} /></label>
+          <label>Avance (%)<input type="number" min="0" max="100" value={avance} onChange={(evento) => setAvance(evento.target.value)} /></label>
+          <button type="submit">Guardar partida</button>
+        </form>
+        <ul className="detail-sessions">
+          {partidas.length === 0 ? <li className="muted">Todavía no hay sesiones registradas.</li> : null}
+          {partidas.map((partida) => (
+            <li key={partida._id}>
+              <span>{new Date(partida.fecha).toLocaleDateString("es-ES")}</span>
+              <span>{partida.duracionMinutos} min</span>
+              <span>{partida.porcentajeAvance}% de avance</span>
+            </li>
+          ))}
+        </ul>
+      </section>
+    </main>
+  );
+}
+
 export function App() {
   const [juegos, setJuegos] = useState<Videojuego[]>([]);
   const [nombre, setNombre] = useState("");
@@ -63,6 +204,10 @@ export function App() {
   const [partidaFecha, setPartidaFecha] = useState(FECHA_HOY);
   const [partidaDuracion, setPartidaDuracion] = useState("60");
   const [partidaAvance, setPartidaAvance] = useState("0");
+  const [detalleSeleccionado, setDetalleSeleccionado] = useState<string | null>(() => {
+    const coincidencia = window.location.hash.match(/^#\/juego\/([^/]+)$/);
+    return coincidencia ? decodeURIComponent(coincidencia[1]) : null;
+  });
   const [editandoId, setEditandoId] = useState<string | null>(null);
   const [editNombre, setEditNombre] = useState("");
   const [editGenero, setEditGenero] = useState<Genero | "">("");
@@ -90,6 +235,15 @@ export function App() {
       .catch((err: unknown) => setError(textoError(err)))
       .finally(() => setCargando(false));
     // Solo al montar. Los filtros recargan con el botón.
+  }, []);
+
+  useEffect(() => {
+    const actualizarRuta = () => {
+      const coincidencia = window.location.hash.match(/^#\/juego\/([^/]+)$/);
+      setDetalleSeleccionado(coincidencia ? decodeURIComponent(coincidencia[1]) : null);
+    };
+    window.addEventListener("hashchange", actualizarRuta);
+    return () => window.removeEventListener("hashchange", actualizarRuta);
   }, []);
 
   async function enviar(evento: FormEvent<HTMLFormElement>) {
@@ -241,6 +395,20 @@ export function App() {
     } catch (err) {
       setError(textoError(err));
     }
+  }
+
+  const juegoDetalle = detalleSeleccionado
+    ? juegos.find((juego) => juego._id === detalleSeleccionado)
+    : undefined;
+
+  if (juegoDetalle) {
+    return (
+      <DetalleJuego
+        juego={juegoDetalle}
+        onBack={() => { window.location.hash = ""; }}
+        onChanged={cargar}
+      />
+    );
   }
 
   return (
@@ -463,7 +631,12 @@ export function App() {
         <ul className="lista" ref={bibliotecaRef}>
           {juegos.map((juego) => (
             <li key={juego._id}>
-              <div className="cover-slot">
+              <button
+                type="button"
+                className="cover-slot cover-button"
+                aria-label={`Ver detalle de ${juego.nombre}`}
+                onClick={() => { window.location.hash = `/juego/${encodeURIComponent(juego._id)}`; }}
+              >
                 <img
                   src={`/img/${slugPortada(juego.nombre)}.png`}
                   alt={`Portada de ${juego.nombre}`}
@@ -472,7 +645,7 @@ export function App() {
                     evento.currentTarget.src = `/img2/${(juego._id.charCodeAt(0) % 3) + 1}.svg`;
                   }}
                 />
-              </div>
+              </button>
               <div className="game-body">
                 {editandoId === juego._id ? (
                   <div className="edicion-juego">
@@ -514,7 +687,13 @@ export function App() {
                   <>
                     <div className="juego-cabecera">
                       <div>
-                        <strong>{juego.nombre}</strong>
+                        <button
+                          type="button"
+                          className="game-title"
+                          onClick={() => { window.location.hash = `/juego/${encodeURIComponent(juego._id)}`; }}
+                        >
+                          {juego.nombre}
+                        </button>
                         <span className="platform">{juego.genero} · {juego.plataforma}</span>
                         {juego.descripcion ? <p className="game-description">{juego.descripcion}</p> : null}
                       </div>
@@ -554,8 +733,8 @@ export function App() {
                     </ul>
                   )}
                 </details>
-                <button type="button" className="ghost detail-toggle" onClick={() => void abrirDetalle(juego._id)}>
-                  {detalleId === juego._id ? "Actualizar detalle" : "Ver partidas y resumen"}
+                <button type="button" className="ghost detail-toggle" onClick={() => { window.location.hash = `/juego/${encodeURIComponent(juego._id)}`; }}>
+                  Ver ficha completa
                 </button>
                 {detalleId === juego._id ? (
                   <div className="detalle">
