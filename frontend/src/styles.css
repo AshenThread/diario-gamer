@@ -547,11 +547,34 @@ button:disabled { cursor: wait; opacity: .5; transform: none; }
 
 @keyframes heading-glitch {
   0%, 91%, 100% { opacity: 1; transform: translateX(0); }
-  92% { color: var(--game-accent, #c9a227); text-shadow: 2px 0 var(--game-ink, #000), -2px 0 var(--game-accent, #c9a227); transform: skewX(-1deg); }
+  92%, 95% { color: transparent; text-shadow: 2px 0 var(--game-ink, #000), -2px 0 var(--game-accent, #c9a227); transform: skewX(-1deg); }
   94% { color: inherit; text-shadow: none; transform: translateX(0); }
   96% { color: var(--game-ink, #000); text-shadow: -2px 0 var(--game-accent, #c9a227); transform: translateX(2px); }
 }
 
+.glitch-title { position: relative; }
+.glitch-code {
+  color: var(--game-accent, #c9a227);
+  display: block;
+  font-family: "Courier New", monospace;
+  font-size: .24em;
+  font-style: normal;
+  font-weight: 700;
+  letter-spacing: .08em;
+  line-height: 1.2;
+  opacity: 0;
+  pointer-events: none;
+  position: absolute;
+  text-shadow: 2px 0 var(--game-ink, #000);
+  top: 50%;
+  transform: translateY(-50%);
+  white-space: nowrap;
+}
+@keyframes glitch-code {
+  0%, 90%, 100% { opacity: 0; }
+  92%, 95% { opacity: 1; }
+  97% { opacity: 0; }
+}
 .home-page h2,
 .home-page h3,
 .detail-intro h1,
@@ -561,6 +584,7 @@ button:disabled { cursor: wait; opacity: .5; transform: none; }
   animation: heading-glitch 7s steps(1, end) infinite;
   will-change: transform, text-shadow;
 }
+.glitch-code { animation: glitch-code 7s steps(1, end) infinite; }
 .home-page h2:hover,
 .home-page h3:hover,
 .detail-intro h1:hover,
@@ -568,6 +592,10 @@ button:disabled { cursor: wait; opacity: .5; transform: none; }
 .detail-page h3:hover,
 .game-title:hover {
   animation: title-glitch-hover .75s steps(1, end);
+}
+.glitch-title:hover .glitch-code,
+.glitch-title:focus-visible .glitch-code {
+  animation: glitch-code .75s steps(1, end);
 }
 
 @keyframes theme-drift {
