@@ -59,6 +59,7 @@ export async function listarVideojuegos(filtro: {
 
 export async function crearVideojuego(datos: {
   nombre: string;
+  genero: string;
   plataforma: Plataforma;
   estado: Estado;
   logros: { nombre: string; descripcion: string; obtenido: boolean }[];

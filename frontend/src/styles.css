@@ -164,6 +164,7 @@ button:disabled { cursor: wait; opacity: .5; transform: none; }
   letter-spacing: .2em;
 }
 .cover-slot span { border: 1px solid #000; font-size: 11px; padding: 6px 9px; }
+.cover-slot img { height: 100%; object-fit: cover; width: 100%; }
 .game-body { display: grid; gap: 20px; padding: 22px; }
 .juego-cabecera { align-items: start; display: flex; gap: 16px; justify-content: space-between; }
 .juego-cabecera strong { display: block; font-size: 25px; letter-spacing: -.05em; line-height: 1; }
@@ -176,6 +177,18 @@ button:disabled { cursor: wait; opacity: .5; transform: none; }
 .logros li { padding: 7px 0; }
 .logros .check { align-items: start; font-size: 12px; line-height: 1.35; }
 .muted { color: rgba(0, 0, 0, .55); font-size: 13px; }
+.detail-toggle { font-size: 11px; padding: 8px 10px; }
+.detalle { border-top: 1px solid rgba(0, 0, 0, .35); display: grid; gap: 12px; padding-top: 14px; }
+.resumen { display: grid; gap: 8px; grid-template-columns: repeat(3, 1fr); margin: 0; }
+.resumen div { border-left: 2px solid #000; padding-left: 7px; }
+.resumen dt { font-size: 10px; text-transform: uppercase; }
+.resumen dd { font-size: 18px; margin: 3px 0 0; }
+.partida-form { display: grid; gap: 8px; grid-template-columns: repeat(3, 1fr); }
+.partida-form label { font-size: 10px; gap: 2px; }
+.partida-form input { min-height: 30px; padding: 4px 0; }
+.partida-form button { grid-column: 1 / -1; font-size: 11px; }
+.partidas { border-top: 1px solid rgba(0, 0, 0, .15); font-size: 11px; list-style: none; margin: 0; padding: 9px 0 0; }
+.partidas li { padding: 3px 0; }
 
 @media (max-width: 700px) {
   .page { padding-top: 20px; }

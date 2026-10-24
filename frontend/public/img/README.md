@@ -1,0 +1,15 @@
+# Portadas personalizadas
+
+Agrega aquí las portadas con formato `JPG` y tamaño recomendado de **720 × 960 px**
+(proporción 3:4).
+
+El nombre del archivo debe ser el nombre del videojuego en minúsculas, sin tildes,
+con espacios y símbolos reemplazados por guiones. Por ejemplo:
+
+```text
+The Legend of Zelda: Tears of the Kingdom
+the-legend-of-zelda-tears-of-the-kingdom.jpg
+```
+
+El formulario no pide la imagen. La aplicación busca automáticamente este archivo
+cuando muestra cada videojuego. Si no existe, usa una portada de `../img2`.

@@ -8,7 +8,7 @@ import {
   type Plataforma,
 } from "../modelos/Videojuego";
 
-const CAMPOS_ACTUALIZABLES = ["nombre", "plataforma", "estado", "logros"] as const;
+const CAMPOS_ACTUALIZABLES = ["nombre", "genero", "plataforma", "estado", "logros"] as const;
 type CampoActualizable = (typeof CAMPOS_ACTUALIZABLES)[number];
 
 export interface FiltroListado {
@@ -39,6 +39,13 @@ function exigirNombre(valor: unknown): string {
     throw new ErrorValidacion("El nombre es obligatorio");
   }
   return valor;
+}
+
+function exigirGenero(valor: unknown): string {
+  if (typeof valor !== "string" || valor.trim() === "") {
+    throw new ErrorValidacion("El género es obligatorio");
+  }
+  return valor.trim();
 }
 
 function exigirPlataforma(valor: unknown): Plataforma {
@@ -102,7 +109,7 @@ function camposPresentes(body: unknown): Partial<Record<CampoActualizable, unkno
     }
   }
   if (Object.keys(datos).length === 0) {
-    throw new ErrorValidacion("Envía al menos un campo: nombre, plataforma, estado o logros");
+    throw new ErrorValidacion("Envía al menos un campo: nombre, género, plataforma, estado o logros");
   }
   return datos;
 }
@@ -134,11 +141,13 @@ export async function crear(body: unknown) {
   const cuerpo = leerObjeto(body);
   const datos: {
     nombre: string;
+    genero: string;
     plataforma: Plataforma;
     estado: Estado;
     logros?: unknown;
   } = {
     nombre: exigirNombre(cuerpo.nombre),
+    genero: exigirGenero(cuerpo.genero),
     plataforma: exigirPlataforma(cuerpo.plataforma),
     estado: exigirEstado(cuerpo.estado),
   };
@@ -160,6 +169,9 @@ export async function actualizar(id: string, body: unknown) {
   }
   if (Object.hasOwn(datos, "nombre")) {
     juego.nombre = exigirNombre(datos.nombre);
+  }
+  if (Object.hasOwn(datos, "genero")) {
+    juego.genero = exigirGenero(datos.genero);
   }
   if (Object.hasOwn(datos, "plataforma")) {
     juego.plataforma = exigirPlataforma(datos.plataforma);

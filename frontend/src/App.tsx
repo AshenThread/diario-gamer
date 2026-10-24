@@ -1,8 +1,15 @@
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { ErrorHttp, actualizarEstado, crearVideojuego, eliminarVideojuego, listarVideojuegos, marcarLogro } from "./api/videojuegosApi";
-import { ESTADOS, PLATAFORMAS, type Estado, type LogroFormulario, type Plataforma, type Videojuego } from "./tipos";
+import { crearPartida, listarPartidas, obtenerResumen } from "./api/partidasApi";
+import { ESTADOS, PLATAFORMAS, type Estado, type LogroFormulario, type Partida, type Plataforma, type Resumen, type Videojuego } from "./tipos";
 
 const LOGRO_VACIO: LogroFormulario = { nombre: "", descripcion: "", obtenido: false };
+const FECHA_HOY = new Date().toISOString().slice(0, 10);
+
+function slugPortada(nombre: string): string {
+  return nombre.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+}
 
 function textoError(error: unknown): string {
   if (error instanceof ErrorHttp) {
@@ -19,6 +26,7 @@ function textoError(error: unknown): string {
 export function App() {
   const [juegos, setJuegos] = useState<Videojuego[]>([]);
   const [nombre, setNombre] = useState("");
+  const [genero, setGenero] = useState("");
   const [plataforma, setPlataforma] = useState<Plataforma>("PC");
   const [estado, setEstado] = useState<Estado>("jugando");
   const [logros, setLogros] = useState<LogroFormulario[]>([{ ...LOGRO_VACIO }]);
@@ -28,6 +36,13 @@ export function App() {
   const [guardando, setGuardando] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [aviso, setAviso] = useState<string | null>(null);
+  const [detalleId, setDetalleId] = useState<string | null>(null);
+  const [detalleCargando, setDetalleCargando] = useState(false);
+  const [resumenes, setResumenes] = useState<Record<string, Resumen>>({});
+  const [partidas, setPartidas] = useState<Record<string, Partida[]>>({});
+  const [partidaFecha, setPartidaFecha] = useState(FECHA_HOY);
+  const [partidaDuracion, setPartidaDuracion] = useState("60");
+  const [partidaAvance, setPartidaAvance] = useState("0");
   const bibliotecaRef = useRef<HTMLUListElement>(null);
 
   function desplazarBiblioteca(direccion: number) {
@@ -60,6 +75,10 @@ export function App() {
       setError("El nombre es obligatorio.");
       return;
     }
+    if (!genero.trim()) {
+      setError("El género es obligatorio.");
+      return;
+    }
     const logrosLimpios = logros
       .map((logro) => ({
         nombre: logro.nombre.trim(),
@@ -72,11 +91,13 @@ export function App() {
       setGuardando(true);
       const creado = await crearVideojuego({
         nombre: nombreLimpio,
+        genero: genero.trim(),
         plataforma,
         estado,
         logros: logrosLimpios,
       });
       setNombre("");
+      setGenero("");
       setPlataforma("PC");
       setEstado("jugando");
       setLogros([{ ...LOGRO_VACIO }]);
@@ -113,10 +134,42 @@ export function App() {
     if (!window.confirm(`¿Borrar ${nombreJuego}?`)) {
       return;
     }
+
     setError(null);
     try {
       await eliminarVideojuego(id);
       await cargar();
+    } catch (err) {
+      setError(textoError(err));
+    }
+
+  }
+
+  async function abrirDetalle(id: string) {
+    setDetalleId(id);
+    setDetalleCargando(true);
+    try {
+      const [resumen, lista] = await Promise.all([obtenerResumen(id), listarPartidas(id)]);
+      setResumenes((actuales) => ({ ...actuales, [id]: resumen }));
+      setPartidas((actuales) => ({ ...actuales, [id]: lista }));
+    } catch (err) {
+      setError(textoError(err));
+    } finally {
+      setDetalleCargando(false);
+    }
+  }
+
+  async function guardarPartida(id: string) {
+    setError(null);
+    try {
+      await crearPartida({
+        videojuego: id,
+        fecha: new Date(`${partidaFecha}T12:00:00`).toISOString(),
+        duracionMinutos: Number(partidaDuracion),
+        porcentajeAvance: Number(partidaAvance),
+      });
+      await abrirDetalle(id);
+      setAviso("Partida guardada.");
     } catch (err) {
       setError(textoError(err));
     }
@@ -145,6 +198,15 @@ export function App() {
             value={nombre}
             onChange={(evento) => setNombre(evento.target.value)}
             placeholder="Hades"
+            required
+          />
+        </label>
+        <label>
+          Género
+          <input
+            value={genero}
+            onChange={(evento) => setGenero(evento.target.value)}
+            placeholder="Acción y aventura"
             required
           />
         </label>
@@ -291,14 +353,21 @@ export function App() {
         <ul className="lista" ref={bibliotecaRef}>
           {juegos.map((juego) => (
             <li key={juego._id}>
-              <div className="cover-slot" aria-label={`Espacio para imagen de ${juego.nombre}`}>
-                <span>IMG</span>
+              <div className="cover-slot">
+                <img
+                  src={`/img/${slugPortada(juego.nombre)}.jpg`}
+                  alt={`Portada de ${juego.nombre}`}
+                  onError={(evento) => {
+                    evento.currentTarget.onerror = null;
+                    evento.currentTarget.src = `/img2/${(juego._id.charCodeAt(0) % 3) + 1}.svg`;
+                  }}
+                />
               </div>
               <div className="game-body">
                 <div className="juego-cabecera">
                   <div>
                     <strong>{juego.nombre}</strong>
-                    <span className="platform">{juego.plataforma}</span>
+                    <span className="platform">{juego.genero} · {juego.plataforma}</span>
                   </div>
                   <button type="button" className="peligro" onClick={() => void borrar(juego._id, juego.nombre)}>
                     Borrar
@@ -338,6 +407,32 @@ export function App() {
                     </ul>
                   )}
                 </details>
+                <button type="button" className="ghost detail-toggle" onClick={() => void abrirDetalle(juego._id)}>
+                  {detalleId === juego._id ? "Actualizar detalle" : "Ver partidas y resumen"}
+                </button>
+                {detalleId === juego._id ? (
+                  <div className="detalle">
+                    {detalleCargando ? <p className="muted">Cargando detalle…</p> : null}
+                    {resumenes[juego._id] ? (
+                      <dl className="resumen">
+                        <div><dt>Horas</dt><dd>{resumenes[juego._id].horasTotales}</dd></div>
+                        <div><dt>Sesiones</dt><dd>{resumenes[juego._id].cantidadPartidas}</dd></div>
+                        <div><dt>Avance</dt><dd>{resumenes[juego._id].avanceActual === null ? "—" : `${resumenes[juego._id].avanceActual}%`}</dd></div>
+                      </dl>
+                    ) : null}
+                    <div className="partida-form">
+                      <label>Fecha<input type="date" value={partidaFecha} onChange={(evento) => setPartidaFecha(evento.target.value)} /></label>
+                      <label>Minutos<input type="number" min="1" max="1440" value={partidaDuracion} onChange={(evento) => setPartidaDuracion(evento.target.value)} /></label>
+                      <label>Avance (%)<input type="number" min="0" max="100" value={partidaAvance} onChange={(evento) => setPartidaAvance(evento.target.value)} /></label>
+                      <button type="button" onClick={() => void guardarPartida(juego._id)}>Guardar partida</button>
+                    </div>
+                    {partidas[juego._id]?.length ? (
+                      <ul className="partidas">
+                        {partidas[juego._id].map((partida) => <li key={partida._id}>{new Date(partida.fecha).toLocaleDateString("es-ES")} · {partida.duracionMinutos} min · {partida.porcentajeAvance}%</li>)}
+                      </ul>
+                    ) : <p className="muted">Aún no hay partidas registradas.</p>}
+                  </div>
+                ) : null}
               </div>
             </li>
           ))}

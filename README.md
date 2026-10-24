@@ -49,6 +49,7 @@ Un enum es una lista cerrada: el campo solo acepta una de esas opciones. `trim` 
 | Campo | Reglas |
 | --- | --- |
 | nombre | string, obligatorio, trim |
+| genero | string, obligatorio, trim |
 | plataforma | enum: `PC`, `PlayStation`, `Xbox`, `Nintendo`, `Mobile`. Obligatoria: sin ella el diario no puede decir dónde lo juegas. |
 | estado | enum: `pendiente`, `jugando`, `completado`, `abandonado`. Obligatorio: es la respuesta a qué estás jugando ahora. |
 | logros | arreglo de subdocumentos. Un subdocumento es un objeto con su propia forma, guardado dentro del juego. No es un string suelto. |
@@ -68,6 +69,7 @@ Al crear, los campos de más se ignoran. El `_id` lo genera MongoDB. Si envías 
 ```json
 {
   "nombre": "Hades",
+  "genero": "Acción y aventura",
   "plataforma": "PC",
   "estado": "jugando",
   "logros": [
@@ -82,7 +84,8 @@ Al crear, los campos de más se ignoran. El `_id` lo genera MongoDB. Si envías 
 
 ## Esquema Partida
 
-Partida queda descrita aquí y se programa en la etapa 3. Cada sesión será un documento en su propia colección. Los cuatro campos son obligatorios: sin ellos el resumen no puede calcularse.
+Cada sesión es un documento de la colección `partidas`. Los cuatro campos son obligatorios:
+sin ellos el resumen no puede calcularse.
 
 | Campo | Reglas |
 | --- | --- |
@@ -101,7 +104,9 @@ Referenciar es guardar en la partida solo el ObjectId del videojuego, con la par
 
 ## Fórmula del resumen
 
-El cálculo vive en el servicio. El controlador solo traducirá el HTTP. El frontend solo mostrará el número que el servicio ya redondeó. Hoy la fórmula está documentada y sin endpoint.
+El cálculo vive en `partidaServicio.ts`. El controlador solo traduce HTTP y el frontend
+muestra el resultado que el servicio ya redondeó. Está disponible en
+`GET /api/videojuegos/:id/resumen`.
 
 El status es el código numérico con el que el servidor resume el resultado. Si el videojuego no existe, el status es 404 (no encontrado).
 

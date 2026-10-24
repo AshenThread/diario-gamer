@@ -14,6 +14,7 @@ export interface LogroAtributos {
 
 export interface VideojuegoAtributos {
   nombre: string;
+  genero: string;
   plataforma: Plataforma;
   estado: Estado;
   logros: LogroAtributos[];
@@ -45,6 +46,11 @@ const videojuegoSchema = new Schema<VideojuegoAtributos>(
     nombre: {
       type: String,
       required: [true, "El nombre es obligatorio"],
+      trim: true,
+    },
+    genero: {
+      type: String,
+      required: [true, "El género es obligatorio"],
       trim: true,
     },
     plataforma: {

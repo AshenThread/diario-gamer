@@ -1,11 +1,14 @@
 import { Router } from "express";
 import * as videojuegoControlador from "../controladores/videojuegoControlador";
+import * as partidaControlador from "../controladores/partidaControlador";
 import { asyncHandler } from "./asyncHandler";
 
 export const videojuegoRutas = Router();
 
 videojuegoRutas.get("/", asyncHandler(videojuegoControlador.listar));
 videojuegoRutas.post("/", asyncHandler(videojuegoControlador.crear));
+videojuegoRutas.get("/:id/partidas", asyncHandler(partidaControlador.listarPorVideojuego));
+videojuegoRutas.get("/:id/resumen", asyncHandler(partidaControlador.resumen));
 videojuegoRutas.get("/:id", asyncHandler(videojuegoControlador.obtenerPorId));
 videojuegoRutas.patch(
   "/:id/logros/:logroId",

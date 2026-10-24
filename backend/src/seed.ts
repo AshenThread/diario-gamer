@@ -5,6 +5,7 @@ import { Videojuego, type VideojuegoAtributos } from "./modelos/Videojuego";
 const JUEGOS_INICIALES: VideojuegoAtributos[] = [
   {
     nombre: "Hades",
+    genero: "Acción y aventura",
     plataforma: "PC",
     estado: "jugando",
     logros: [
@@ -14,6 +15,7 @@ const JUEGOS_INICIALES: VideojuegoAtributos[] = [
   },
   {
     nombre: "The Legend of Zelda: Tears of the Kingdom",
+    genero: "Aventura",
     plataforma: "Nintendo",
     estado: "jugando",
     logros: [
@@ -22,12 +24,14 @@ const JUEGOS_INICIALES: VideojuegoAtributos[] = [
   },
   {
     nombre: "Red Dead Redemption 2",
+    genero: "Acción y aventura",
     plataforma: "PlayStation",
     estado: "pendiente",
     logros: [],
   },
   {
     nombre: "Celeste",
+    genero: "Plataformas",
     plataforma: "PC",
     estado: "completado",
     logros: [

@@ -14,9 +14,25 @@ export interface Logro {
 export interface Videojuego {
   _id: string;
   nombre: string;
+  genero: string;
   plataforma: Plataforma;
   estado: Estado;
   logros: Logro[];
+}
+
+export interface Partida {
+  _id: string;
+  videojuego: string | Videojuego;
+  fecha: string;
+  duracionMinutos: number;
+  porcentajeAvance: number;
+}
+
+export interface Resumen {
+  horasTotales: number;
+  cantidadPartidas: number;
+  fechaUltimaSesion: string | null;
+  avanceActual: number | null;
 }
 
 export interface LogroFormulario {
