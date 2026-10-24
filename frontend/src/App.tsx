@@ -474,16 +474,12 @@ export function App() {
     <main className="page home-page" style={estiloTema(temaHero)}>
       <header
         className="hero"
-        onWheel={(evento) => {
-          if (Math.abs(evento.deltaY) < 8) return;
-          cambiarHero(evento.deltaY > 0 ? 1 : -1);
-        }}
         onKeyDown={(evento) => {
           if (evento.key === "ArrowRight" || evento.key === "ArrowDown") cambiarHero(1);
           if (evento.key === "ArrowLeft" || evento.key === "ArrowUp") cambiarHero(-1);
         }}
         tabIndex={0}
-        aria-label="Baraja de juegos de la colección. Usa las flechas o la rueda del mouse para cambiar."
+        aria-label="Carrusel infinito de juegos de la colección. Usa las flechas para cambiar."
       >
         <div>
           <p className="eyebrow">Archivo personal / 2024—25</p>
@@ -523,7 +519,7 @@ export function App() {
         </div>
         <p className="lead">
           {juegoHero
-            ? `Ahora estás viendo ${juegoHero.nombre}. Cambia de portada con la rueda del mouse.`
+            ? `Ahora estás viendo ${juegoHero.nombre}. Usa las flechas para recorrer la colección.`
             : "Un registro vivo de partidas, plataformas y logros."}
         </p>
       </header>
