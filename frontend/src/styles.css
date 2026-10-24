@@ -53,9 +53,9 @@ code { font-family: "Courier New", monospace; font-size: .82em; }
 .home-page {
   background:
     radial-gradient(circle at 8% 8%, color-mix(in srgb, var(--game-accent, #c9a227) 24%, transparent), transparent 32%),
-    radial-gradient(circle at 92% 14%, color-mix(in srgb, var(--game-ink, #000) 12%, transparent), transparent 35%),
+    radial-gradient(circle at 92% 14%, color-mix(in srgb, var(--game-accent, #c9a227) 12%, transparent), transparent 35%),
     radial-gradient(circle at 20% 78%, color-mix(in srgb, var(--game-accent, #c9a227) 15%, var(--game-paper, #fff)), transparent 40%),
-    radial-gradient(circle at 78% 84%, color-mix(in srgb, var(--game-ink, #000) 10%, var(--game-paper, #fff)), transparent 42%),
+    radial-gradient(circle at 78% 84%, color-mix(in srgb, var(--game-accent, #c9a227) 10%, var(--game-paper, #fff)), transparent 42%),
     radial-gradient(circle at 18% 24%, color-mix(in srgb, var(--game-paper, #fff) 86%, #fff 14%), transparent 43%),
     var(--game-paper, #fff);
   min-height: 100vh;
@@ -69,7 +69,7 @@ code { font-family: "Courier New", monospace; font-size: .82em; }
 .home-page::before {
   background:
     radial-gradient(ellipse at 70% 10%, color-mix(in srgb, var(--game-accent, #c9a227) 22%, transparent), transparent 35%),
-    radial-gradient(ellipse at 44% 62%, color-mix(in srgb, var(--game-ink, #000) 13%, transparent), transparent 38%);
+    radial-gradient(ellipse at 44% 62%, color-mix(in srgb, var(--game-accent, #c9a227) 13%, transparent), transparent 38%);
   content: "";
   inset: 0;
   position: fixed;
@@ -81,7 +81,7 @@ code { font-family: "Courier New", monospace; font-size: .82em; }
     from 130deg at 62% 48%,
     color-mix(in srgb, var(--game-accent, #c9a227) 14%, transparent),
     transparent 26%,
-    color-mix(in srgb, var(--game-ink, #000) 9%, transparent) 52%,
+    color-mix(in srgb, var(--game-accent, #c9a227) 9%, transparent) 52%,
     transparent 78%
   );
   content: "";
@@ -107,7 +107,7 @@ code { font-family: "Courier New", monospace; font-size: .82em; }
 }
 .background-shapes { inset: 0; overflow: hidden; pointer-events: none; position: absolute; z-index: 0; }
 .bg-shape {
-  background: color-mix(in srgb, var(--game-ink, #000) 25%, transparent);
+  background: color-mix(in srgb, var(--game-accent, #c9a227) 25%, transparent);
   border: 2px solid color-mix(in srgb, var(--game-accent, #c9a227) 24%, transparent);
   filter: blur(5px);
   opacity: .16;
