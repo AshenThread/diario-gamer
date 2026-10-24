@@ -448,8 +448,44 @@ button:disabled { cursor: wait; opacity: .5; transform: none; }
 .partidas { font-size: 11px; list-style: none; margin: 0; padding: 9px 0 0; }
 .partidas li { padding: 3px 0; }
 
-.detail-page { max-width: 1120px; }
-.detail-page::before { background: var(--game-accent, #c9a227); content: ""; display: block; height: 5px; left: 0; position: absolute; right: 0; top: 0; }
+.detail-page {
+  background:
+    radial-gradient(circle at 8% 8%, color-mix(in srgb, var(--game-accent, #c9a227) 34%, transparent), transparent 34%),
+    radial-gradient(circle at 92% 18%, color-mix(in srgb, var(--game-accent, #c9a227) 24%, transparent), transparent 36%),
+    radial-gradient(circle at 18% 88%, color-mix(in srgb, var(--game-accent, #c9a227) 22%, var(--game-paper, #fff)), transparent 42%),
+    radial-gradient(circle at 82% 78%, color-mix(in srgb, var(--game-accent, #c9a227) 18%, var(--game-paper, #fff)), transparent 44%),
+    var(--game-paper, #fff);
+  isolation: isolate;
+  max-width: 1120px;
+  min-height: 100vh;
+  overflow: hidden;
+  position: relative;
+  transition: background .55s ease;
+}
+.detail-page::before {
+  background: var(--game-accent, #c9a227);
+  content: "";
+  display: block;
+  height: 5px;
+  left: 0;
+  position: absolute;
+  right: 0;
+  top: 0;
+  z-index: 2;
+}
+.detail-page::after {
+  background:
+    radial-gradient(ellipse at 68% 12%, color-mix(in srgb, var(--game-accent, #c9a227) 30%, transparent), transparent 38%),
+    radial-gradient(ellipse at 42% 66%, color-mix(in srgb, var(--game-accent, #c9a227) 20%, transparent), transparent 42%);
+  content: "";
+  inset: -12%;
+  opacity: .9;
+  pointer-events: none;
+  position: absolute;
+  z-index: -1;
+  animation: theme-drift 20s ease-in-out infinite alternate;
+}
+.detail-page > * { position: relative; z-index: 1; }
 .back-button { margin-bottom: 28px; }
 .detail-hero { align-items: end; animation: detail-reveal .55s ease both; display: grid; gap: 48px; grid-template-columns: minmax(220px, 320px) 1fr; padding-bottom: 52px; }
 .detail-cover { height: 420px; }
