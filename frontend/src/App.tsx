@@ -465,7 +465,7 @@ export function App() {
             <li key={juego._id}>
               <div className="cover-slot">
                 <img
-                  src={`/img/${slugPortada(juego.nombre)}.jpg`}
+                  src={`/img/${slugPortada(juego.nombre)}.png`}
                   alt={`Portada de ${juego.nombre}`}
                   onError={(evento) => {
                     evento.currentTarget.onerror = null;
