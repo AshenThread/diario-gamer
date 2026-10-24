@@ -1,337 +1,159 @@
 # Diario de Progreso Gamer
 
-API para responder tres preguntas: qué estoy jugando ahora, cuánto tiempo le he dedicado y qué tan avanzado voy. Una API es un programa que recibe peticiones HTTP y devuelve datos. Aquí los datos viajan en JSON, un texto que representa objetos con campos. El backend es este programa: guarda los videojuegos y responde. El frontend, la pantalla en React con el formulario para crear juegos, llega en la etapa 3. Hasta entonces los juegos se crean con una petición HTTP.
+Diario personal para registrar videojuegos, sesiones de juego, horas,
+porcentaje de avance y logros. El proyecto combina una API REST en Express
+con TypeScript, MongoDB mediante Mongoose y una interfaz React con Vite.
 
-CRUD son las cuatro operaciones sobre esos datos: crear, leer, actualizar y borrar. Esta entrega deja escrita la base de la etapa 1 (este documento) y programada la etapa 2 (el CRUD de videojuegos).
+## Intención
 
-## Piezas
+La aplicación responde tres preguntas de mi diario:
 
-Cada pieza tiene un trabajo. Mezclarlas hace que la URI, el esquema y el HTTP terminen en el mismo archivo.
+1. ¿Qué estoy jugando?
+2. ¿Cuánto tiempo le he dedicado?
+3. ¿Qué tan avanzado voy?
 
-- **MongoDB** guarda documentos dentro de colecciones. Un documento es un objeto con campos, del estilo de un JSON. Una colección es el grupo de documentos del mismo tipo.
-- **MongoDB Atlas** es esa base de datos en la nube. La URI (la dirección completa, con usuario y contraseña) va en `.env`. El código no contiene esa cadena ni credenciales de ejemplo disfrazadas de reales.
-- **Mongoose** es la librería del backend que define esquemas y habla con Atlas. Un esquema es la forma de un documento: campos, obligatoriedad y valores permitidos. El hosting de la base es Atlas.
-- **Express** es el servidor HTTP de la API. Recibe la petición, la pasa por las capas y devuelve la respuesta.
-- **TypeScript** es JavaScript con tipos: el editor avisa si un campo no coincide con el esquema antes de ejecutar.
-- **Render** es el hosting de más adelante. Un servicio allí es un programa desplegado. Habrá dos: backend y frontend.
+La interfaz usa una identidad visual distinta por juego: portadas locales,
+fondos monocromáticos, tipografías temáticas, baraja interactiva y una ficha
+de progreso.
 
-Las capas van en este orden:
+## Arquitectura
 
-1. **Ruta.** La URL más el método HTTP. El método es el verbo: GET lee, POST crea, PATCH cambia solo lo enviado, DELETE borra.
-2. **Controlador.** Traduce esa petición a una llamada. No decide reglas.
-3. **Servicio.** Las reglas: filtros, ids, errores y, en la etapa 3, el resumen de horas.
-4. **Modelo.** El esquema de Mongoose.
+El backend conserva la separación:
 
-`backend/src/config/env.ts` lee y valida `process.env`. Una variable de entorno es un valor que el proceso recibe al arrancar; en local sale del archivo `.env`. `process.env` es el objeto donde Node las deja. `backend/src/config/conexionDB.ts` llama a `mongoose.connect` con la URI y el nombre de base que devuelve `env.ts`, y no lee `process.env`.
-
-La conexión se abre una vez al arrancar y Mongoose la reutiliza. El pool es el grupo de conexiones ya abiertas, para no repetir el enlace en cada consulta. El tamaño se queda en el default del driver: hay un solo proceso y todavía no hay una cifra de concurrencia medida.
-
-```
-backend/
-  src/config/env.ts
-  src/config/conexionDB.ts
-  src/modelos/Videojuego.ts
-  src/servicios/videojuegoServicio.ts
-  src/controladores/videojuegoControlador.ts
-  src/rutas/videojuegoRutas.ts
-  src/middleware/requestId.ts
-  src/middleware/logger.ts
-  src/middleware/errorHandler.ts
-  src/app.ts
-  src/server.ts
-  .env.example
+```text
+backend/src/
+  config/
+  modelos/
+  servicios/
+  controladores/
+  rutas/
+  middleware/
 ```
 
-## Esquema Videojuego
+- **Modelo:** esquema y validaciones de Mongoose.
+- **Servicio:** reglas de negocio, filtros y resumen calculado.
+- **Controlador:** traducción entre HTTP y servicios.
+- **Ruta:** método HTTP y URL.
+- **Middleware:** request id, logger, CORS, JSON y errores.
 
-Un enum es una lista cerrada: el campo solo acepta una de esas opciones. `trim` quita espacios al inicio y al final antes de guardar.
+El frontend está en `frontend/src/` y consume la API mediante servicios
+TypeScript. La navegación de detalle usa hash para funcionar en un Static
+Site de Render sin depender de rewrites del servidor.
 
-| Campo | Reglas |
+## Modelo de datos
+
+### Videojuego
+
+Colección: `videojuegos`.
+
+| Campo | Tipo y validación |
 | --- | --- |
-| nombre | string, obligatorio, trim |
-| genero | enum de géneros predefinidos, obligatorio |
-| descripcion | string, opcional; si no se envía se guarda como `""` |
-| plataforma | enum: `PC`, `PlayStation`, `Xbox`, `Nintendo`, `Mobile`. Obligatoria: sin ella el diario no puede decir dónde lo juegas. |
-| estado | enum: `pendiente`, `jugando`, `completado`, `abandonado`. Obligatorio: es la respuesta a qué estás jugando ahora. |
-| logros | arreglo de subdocumentos. Un subdocumento es un objeto con su propia forma, guardado dentro del juego. No es un string suelto. |
+| `nombre` | `String`, obligatorio, con `trim` |
+| `genero` | `String`, obligatorio, enum predefinido |
+| `descripcion` | `String`, opcional, por defecto `""` |
+| `plataforma` | enum: `PC`, `PlayStation`, `Xbox`, `Nintendo`, `Mobile` |
+| `estado` | enum: `pendiente`, `jugando`, `completado`, `abandonado` |
+| `logros` | arreglo de subdocumentos embebidos |
 
-Cada logro:
+Cada logro embebido tiene `_id`, `nombre`, `descripcion` y `obtenido`.
 
-| Campo | Reglas |
+### Partida
+
+Colección: `partidas`.
+
+| Campo | Tipo y validación |
 | --- | --- |
-| nombre | string, obligatorio, trim |
-| descripcion | string, por defecto `""`, trim |
-| obtenido | boolean (verdadero o falso), por defecto `false` |
+| `videojuego` | `ObjectId`, `ref: "Videojuego"`, obligatorio |
+| `fecha` | `Date`, obligatorio |
+| `duracionMinutos` | `Number`, mínimo `1`, máximo `1440` |
+| `porcentajeAvance` | `Number`, mínimo `0`, máximo `100` |
 
-El frontend ofrece plantillas para registrar hitos personales de progreso:
-tutorial completado, primera misión, mundo abierto explorado, zonas 1 a 5,
-mapa completo, todas las regiones descubiertas, áreas secretas encontradas,
-juego terminado, nueva partida plus, nivel máximo, todos los coleccionables y
-todos los trofeos.
-También permite agregar logros personalizados. Cada hito se puede marcar como
-obtenido desde el formulario o desde la tarjeta del videojuego.
+### Decisión embebido + referenciado
 
-Desde cada tarjeta también se puede presionar **Editar** para cambiar el nombre,
-género, descripción, plataforma o estado. **Guardar cambios** envía un `PATCH`
-al videojuego existente y persiste la modificación en MongoDB; **Cancelar**
-descarta los cambios locales.
+Los **logros se embeben** porque pertenecen directamente a la ficha del juego,
+se leen junto con él y forman una lista acotada. Cada logro puede actualizarse
+sin crear una colección adicional.
 
-Mongoose asigna `_id` al videojuego y a cada logro. Un ObjectId es el identificador de un documento: 24 caracteres hexadecimales (dígitos `0-9` y letras `a-f`). La colección se llama `videojuegos`. El modelo se llama `Videojuego`, que es el nombre que Partida usará en su `ref`.
-
-Al crear, los campos de más se ignoran. El `_id` lo genera MongoDB. Si envías `logros` en un PATCH del juego, ese arreglo sustituye al anterior; para marcar uno solo usa el endpoint del logro.
-
-```json
-{
-  "nombre": "Hades",
-  "genero": "Acción y aventura",
-  "plataforma": "PC",
-  "estado": "jugando",
-  "logros": [
-    {
-      "nombre": "Primera huida",
-      "descripcion": "Escapa una vez",
-      "obtenido": false
-    }
-  ]
-}
-```
-
-## Esquema Partida
-
-Cada sesión es un documento de la colección `partidas`. Los cuatro campos son obligatorios:
-sin ellos el resumen no puede calcularse.
-
-| Campo | Reglas |
-| --- | --- |
-| videojuego | ObjectId con `ref: "Videojuego"`. `ref` le dice a Mongoose a qué modelo apunta ese id. |
-| fecha | Date, el tipo de fecha y hora. |
-| duracionMinutos | número, mínimo 1, máximo 1440 (un día, en minutos). |
-| porcentajeAvance | número, mínimo 0, máximo 100. |
-
-Cuando exista, Mongoose también le pondrá `_id` a cada partida. Ese `_id` desempata el avance si dos sesiones comparten la fecha máxima.
-
-## Por qué los logros se embeben y Partida se referencia
-
-Embeber es guardar los logros dentro del documento del videojuego. Se embeben porque se leen siempre con el juego, no tienen colección propia y la lista es corta.
-
-Referenciar es guardar en la partida solo el ObjectId del videojuego, con la partida en otra colección. Se referencia porque la lista crece sin límite y las partidas se consultan solas, por ejemplo para sumar minutos. MongoDB limita cada documento a 16 MB; dejar todas las sesiones futuras dentro del juego hincharía ese documento en cada lectura.
+Las **partidas se referencian** porque pueden crecer indefinidamente y deben
+consultarse, ordenarse y agregarse sin aumentar el documento del videojuego.
+La referencia usa `ObjectId` y `ref: "Videojuego"`. La API utiliza `populate`
+para devolver la relación cuando se listan o crean partidas.
 
 ## Fórmula del resumen
 
-El cálculo vive en `partidaServicio.ts`. El controlador solo traduce HTTP y el frontend
-muestra el resultado que el servicio ya redondeó. Está disponible en
-`GET /api/videojuegos/:id/resumen`.
-
-El status es el código numérico con el que el servidor resume el resultado. Si el videojuego no existe, el status es 404 (no encontrado).
-
-Si el videojuego existe y no tiene partidas:
-
-- `horasTotales`: 0
-- `cantidadPartidas`: 0
-- `fechaUltimaSesion`: null
-- `avanceActual`: null
-
-Si hay partidas:
-
-- `horasTotales` = suma de `duracionMinutos` / 60, a 2 decimales, con `Math.round((suma / 60) * 100) / 100`.
-- `cantidadPartidas` = cuántas partidas hay.
-- `fechaUltimaSesion` = la fecha máxima.
-- `avanceActual` = el `porcentajeAvance` de la partida con esa fecha máxima. Si varias empatan, gana el `_id` mayor.
-
-Ejemplo: partidas de 50, 40 y 25 minutos. La suma es 115. `115 / 60 = 1.9166…`, por `100` es `191.666…`, `Math.round` da `192`, dividido entre `100` da **1.92** horas. `cantidadPartidas` es **3**. El **42** no sale de los minutos: es el `porcentajeAvance` guardado en la partida de 25 minutos, cuando esa es la más nueva del mismo día. `fechaUltimaSesion` es la fecha de esa misma partida. Si otra partida del mismo día empatara en fecha, el avance saldría de la que tenga el `_id` mayor.
-
-## Cómo conectar Atlas
-
-1. Entra en [MongoDB Atlas](https://www.mongodb.com/atlas) y crea un proyecto.
-2. Crea un cluster. Un cluster es el grupo de servidores que guarda la base. El plan gratuito, llamado M0, alcanza para este diario.
-3. En **Database Access** crea un usuario de base de datos, con contraseña propia (distinta de tu cuenta de Atlas) y permiso de lectura y escritura.
-4. En **Network Access** permite tu IP actual. Network Access es la lista de direcciones desde las que Atlas acepta conexiones. Tu IP actual basta para trabajar en local. `0.0.0.0/0` abre el cluster a cualquier IP: hace falta cuando la IP cambia o, más adelante, en Render, y exige una contraseña fuerte porque la base queda alcanzable desde internet.
-5. En **Connect → Drivers** copia la URI del cluster. Sustituye `<password>` por la contraseña de ese usuario. Si la contraseña tiene `@`, `#` o `/`, codifícala para URL (`@` pasa a ser `%40`).
-6. Pega la URI en `backend/.env` como `MONGODB_URI`. En `MONGODB_DB` pon el nombre de la base, `diario_gamer`. `dbName` es la opción de `mongoose.connect` que elige esa base dentro del cluster, aunque la URI traiga otro nombre en el path (el tramo después del host). El mismo cluster puede guardar varios proyectos: Pawnee usa su propio `MONGODB_DB` y este diario usa `diario_gamer`. El archivo correcto está junto a `backend/package.json`, no en la raíz del repo. Atlas crea la base al guardar el primer documento.
-
-## Cómo correr el backend en local
-
-```bash
-cd backend
-cp .env.example .env
-```
-
-Edita `.env` y pon la URI real. Después:
-
-```bash
-npm install
-npm run dev
-```
-
-`npm run dev` usa tsx, un ejecutor que corre TypeScript directamente y reinicia el proceso al guardar. El puerto es el número de la puerta de red; lo marca `PORT`. Pawnee ya usa el 3000, así que este diario escucha en `http://localhost:3001`. Si omites `PORT`, también se usa `3001`.
-
-Para cargar datos de ejemplo sin usar SQL injection ni borrar documentos existentes, ejecuta en otra terminal:
-
-```bash
-cd backend
-npm run seed
-```
-
-El seed añade Cyberpunk 2077, Red Dead Redemption 2, Hades, Hollow Knight, Hollow Knight: Silksong, Genshin Impact y Celeste con plataformas, estados, logros y sesiones de progreso iniciales. También elimina la entrada antigua de The Legend of Zelda: Tears of the Kingdom. Es idempotente: si ya existe la misma combinación de nombre y plataforma, la actualiza sin duplicar el juego y actualiza las sesiones de ejemplo por fecha.
-
-Si falta `MONGODB_URI`, está vacía o no empieza por `mongodb://` ni `mongodb+srv://`, el proceso termina antes de escuchar.
-
-`npm run build` compila a `backend/dist`. `npm start` ejecuta ese JavaScript. `dist` queda fuera de git.
-
-## .env.example
-
-El archivo real es `backend/.env.example`. Cópialo a `backend/.env`. `.gitignore` es la lista de archivos que git no guarda; ahí está `.env`, así la URI no entra al repositorio.
-
-```
-MONGODB_URI=mongodb+srv://<usuario>:<password>@<cluster>.mongodb.net/?retryWrites=true&w=majority
-MONGODB_DB=diario_gamer
-PORT=3001
-CORS_ORIGIN=http://localhost:5174
-```
-
-`MONGODB_DB` es el nombre de la base dentro del cluster. Si lo omites, se usa `diario_gamer`.
-
-CORS es el permiso del navegador para que una página en otro origen (otro puerto) llame a esta API. `CORS_ORIGIN` es ese origen permitido. El formulario vive en `http://localhost:5174`. Si omites `CORS_ORIGIN`, se usa esa misma dirección.
-
-## Cómo correr el formulario
-
-El frontend es la pantalla en React. Una sola página: crear videojuego con logros, filtrar, cambiar estado, marcar un logro y borrar. Habla con las mismas rutas `/api/videojuegos`. Vite, el servidor de desarrollo de React, reenvía `/api` al puerto 3001. El navegador no salta el middleware: Express sigue poniendo `requestId`, escribe el logger y, si algo falla, responde el `errorHandler`.
-
-En la colección, la portada, el título y **Ver ficha completa** abren la ruta
-`#/juego/:id`. Esa ficha muestra la descripción, el género, la plataforma, el
-estado, los logros, el resumen calculado y las sesiones. Se usa hash para que
-la navegación funcione directamente en Render como sitio estático.
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-Abre `http://localhost:5174`. El backend tiene que estar en el 3001.
-
-`<usuario>`, `<password>` y `<cluster>` son huecos para sustituir. No son una cuenta real.
-
-## Despliegue en Render
-
-El archivo `render.yaml` define los dos servicios:
-
-- `diario-gamer-api`: Web Service Node, con `backend` como raíz, `npm ci && npm run build` y `npm start`.
-- `diario-gamer-web`: Static Site, con `frontend` como raíz, `npm ci && npm run build` y publicación de `dist`.
-
-En Render, crea un **Blueprint** desde este repositorio. En el formulario de variables privadas del backend configura:
+La lógica vive en
+[`backend/src/servicios/partidaServicio.ts`](./backend/src/servicios/partidaServicio.ts),
+no en React.
 
 ```text
-MONGODB_URI=mongodb+srv://...
-MONGODB_DB=diario_gamer
-CORS_ORIGIN=https://<url-real-del-frontend>.onrender.com
+horasTotales = round((sumatoria de duracionMinutos / 60) * 100) / 100
+cantidadPartidas = número total de partidas
+fechaUltimaSesion = fecha máxima
+avanceActual = porcentajeAvance de la partida más reciente
 ```
 
-En el frontend configura durante el build:
-
-```text
-VITE_API_URL=https://<url-real-del-backend>.onrender.com
-```
-
-`CORS_ORIGIN` debe ser exactamente el origen del frontend, sin una barra final, y `VITE_API_URL` debe ser exactamente el origen público del backend, también sin una barra final. No guardes estos valores en el repositorio: Render los mantiene en su panel. Después de guardar `VITE_API_URL`, ejecuta un nuevo deploy del Static Site para que Vite lo incorpore al bundle.
-
-## Etapa 2
-
-Un endpoint es una ruta concreta: método más URL. La lista responde un arreglo JSON. Crear responde 201 (creado) con el documento y sus `_id`. Borrar responde 204 (sin cuerpo). Un filtro tiene que coincidir exactamente con el enum; si envías `estado` y `plataforma`, se cumplen los dos.
-
-| Método | Ruta | Qué hace |
-| --- | --- | --- |
-| GET | `/api/videojuegos` | Lista. Filtros opcionales `?estado=` y `?plataforma=`. |
-| GET | `/api/videojuegos/:id` | Devuelve un videojuego. |
-| POST | `/api/videojuegos` | Crea el videojuego. |
-| PATCH | `/api/videojuegos/:id` | Cambia solo `nombre`, `genero`, `descripcion`, `plataforma`, `estado` o `logros`, los que vengan en el cuerpo. |
-| DELETE | `/api/videojuegos/:id` | Borra. Status 204. |
-| PATCH | `/api/videojuegos/:id/logros/:logroId` | Cuerpo `{ "obtenido": true }` o `{ "obtenido": false }`. Devuelve el videojuego. |
-
-### Middleware
-
-Un middleware es una función que ve la petición, en orden, alrededor de la ruta. `asyncHandler` envuelve cada controlador: si la función async falla, el error sigue hacia el `errorHandler` en lugar de quedarse perdido.
-
-1. `requestId` crea un identificador único de esa petición y lo devuelve en la cabecera `X-Request-Id`. Una cabecera es un dato que viaja junto a la respuesta, aparte del JSON.
-2. `logger` escribe en consola método, URL, status y milisegundos cuando la respuesta termina.
-3. `errorHandler` va al final y deja el fallo en uno de estos cuatro. Las validaciones
-   de Mongoose se normalizan, incluyendo las del `enum` de género, y se devuelven
-   como `VALIDACION` con el campo y el motivo en `detalles`.
-
-| Situación | Status | codigo |
-| --- | --- | --- |
-| El cuerpo, el filtro o el esquema no se cumple | 400 | `VALIDACION` |
-| El id no tiene 24 caracteres hexadecimales | 400 | `ID_INVALIDO` |
-| No existe el videojuego, el logro o la ruta | 404 | `NO_ENCONTRADO` |
-| Cualquier otro fallo | 500 | `INESPERADO` |
-
-El 500 guarda el detalle en la consola, junto al identificador de la petición, y al cliente le responde solo «Error inesperado». En validación puede venir `detalles`, un arreglo de frases.
+Si dos partidas empatan en fecha, gana la que tenga el `_id` mayor. Si no
+existen partidas, el servicio devuelve:
 
 ```json
 {
-  "codigo": "NO_ENCONTRADO",
-  "error": "Videojuego no encontrado",
-  "status": 404,
-  "requestId": "..."
+  "horasTotales": 0,
+  "cantidadPartidas": 0,
+  "fechaUltimaSesion": null,
+  "avanceActual": null
 }
 ```
 
-Mongoose suele añadir `__v`, un contador interno de cambios simultáneos. Aquí `versionKey: false` lo deja fuera, y el JSON trae los campos del esquema más los `_id`.
+Después de guardar una nueva partida, la ficha vuelve a consultar partidas y
+resumen, por lo que los datos se actualizan inmediatamente.
 
-### Probar con curl
+## API REST
 
-`curl` es el comando de terminal que hace la petición HTTP. Con `npm run dev` en marcha y la URI ya puesta en `backend/.env`:
+### Videojuegos
 
-```bash
-curl -s -X POST http://localhost:3001/api/videojuegos \
-  -H "Content-Type: application/json" \
-  -d '{"nombre":"Hades","plataforma":"PC","estado":"jugando","logros":[{"nombre":"Primera huida","descripcion":"Escapa una vez","obtenido":false}]}'
-```
+| Método | Ruta | Función |
+| --- | --- | --- |
+| GET | `/api/videojuegos` | Lista con filtros opcionales |
+| POST | `/api/videojuegos` | Crea un videojuego |
+| GET | `/api/videojuegos/:id` | Obtiene un videojuego |
+| PATCH | `/api/videojuegos/:id` | Actualiza campos del videojuego |
+| DELETE | `/api/videojuegos/:id` | Elimina un videojuego |
+| PATCH | `/api/videojuegos/:id/logros/:logroId` | Actualiza `obtenido` |
 
-Crea el videojuego y muestra el JSON, con el `_id` del juego y el del logro.
+### Partidas y resumen
 
-```bash
-curl -s "http://localhost:3001/api/videojuegos?estado=jugando&plataforma=PC"
-```
+| Método | Ruta | Función |
+| --- | --- | --- |
+| GET | `/api/partidas` | Lista partidas con `populate` |
+| POST | `/api/partidas` | Registra una sesión |
+| DELETE | `/api/partidas/:id` | Elimina una sesión |
+| GET | `/api/videojuegos/:id/partidas` | Lista sesiones de un juego |
+| GET | `/api/videojuegos/:id/resumen` | Devuelve el resumen calculado |
 
-Lista los que están en jugando y en PC a la vez.
+### Errores
 
-```bash
-curl -s http://localhost:3001/api/videojuegos/ID_DEL_JUEGO
-```
+El middleware central diferencia:
 
-Devuelve ese videojuego.
+| Situación | Status | Código |
+| --- | ---: | --- |
+| Cuerpo, filtro o esquema inválido | 400 | `VALIDACION` |
+| ObjectId inválido o `CastError` | 400 | `ID_INVALIDO` |
+| Documento, logro o ruta inexistente | 404 | `NO_ENCONTRADO` |
+| Error no previsto | 500 | `INESPERADO` |
 
-```bash
-curl -s -X PATCH http://localhost:3001/api/videojuegos/ID_DEL_JUEGO \
-  -H "Content-Type: application/json" \
-  -d '{"estado":"completado"}'
-```
+Cada respuesta de error incluye `requestId`; los detalles de validación se
+devuelven en el campo `detalles`.
 
-Cambia solo el estado. El nombre y los logros se quedan.
+## Configuración local
 
-```bash
-curl -s -X PATCH http://localhost:3001/api/videojuegos/ID_DEL_JUEGO/logros/ID_DEL_LOGRO \
-  -H "Content-Type: application/json" \
-  -d '{"obtenido":true}'
-```
+Requisitos: Node.js 20 o superior, npm y MongoDB Atlas o MongoDB local.
 
-Marca ese logro como obtenido.
+Variables:
 
-```bash
-curl -s -i -X DELETE http://localhost:3001/api/videojuegos/ID_DEL_JUEGO
-```
+- [`backend/.env.example`](./backend/.env.example)
+- [`frontend/.env.example`](./frontend/.env.example)
 
-Borra el videojuego. La primera línea de la respuesta debe decir `204`.
-
-Sustituye `ID_DEL_JUEGO` e `ID_DEL_LOGRO` por los valores que devolvió el POST.
-
-## Ejecutar el proyecto completo
-
-Requisitos: Node.js 20 o superior, una base de MongoDB Atlas (o MongoDB local)
-y npm.
-
-### Backend
+Comandos de desarrollo:
 
 ```bash
 cd backend
@@ -339,11 +161,6 @@ cp .env.example .env
 npm install
 npm run dev
 ```
-
-Completa `MONGODB_URI` en `backend/.env`. `CORS_ORIGIN` debe apuntar al
-frontend local (`http://localhost:5174`) o a la URL pública del Static Site.
-
-### Frontend
 
 En otra terminal:
 
@@ -354,36 +171,37 @@ npm install
 npm run dev
 ```
 
-`VITE_API_URL` debe apuntar al backend. Para una compilación de entrega:
+El seed es idempotente y carga los siete juegos y sus sesiones iniciales:
+
+```bash
+cd backend && npm run seed
+```
+
+Validación de compilación:
 
 ```bash
 cd frontend && npm run build
 cd ../backend && npm run typecheck && npm run build
 ```
 
-## Despliegue en Render
+## Despliegue público
 
-`render.yaml` define dos servicios:
+El despliegue activo en Render está disponible en:
 
-- Backend: `diario-gamer-api`, con `MONGODB_URI`, `MONGODB_DB`,
-  `CORS_ORIGIN` y `PORT`.
-- Frontend: `diario-gamer-web`, con `VITE_API_URL`.
+- Frontend: <https://diario-gamer-web-55fd.onrender.com/>
+- Backend: <https://diario-gamer-api-3lsk.onrender.com/>
 
-Las URLs públicas dependen de la cuenta y del despliegue activo de Render.
-Después de crear los servicios, copia las URLs asignadas en esta sección:
+El frontend público consume la API pública mediante `VITE_API_URL`. El backend
+usa `CORS_ORIGIN` con el origen del Static Site. Las credenciales de MongoDB y
+las variables privadas de Render no están en el repositorio.
 
-- Frontend: `https://<static-site-generado-por-render>.onrender.com`
-- Backend: `https://<web-service-generado-por-render>.onrender.com`
-
-No se incluyen valores reales en el repositorio ni en los archivos `.env.example`.
+La infraestructura declarativa está en [`render.yaml`](./render.yaml).
 
 ## Tipografías por juego
 
-La interfaz no copia ni distribuye las tipografías propietarias de las marcas.
-Usa equivalentes libres cargadas desde Google Fonts para conservar la intención
-visual de cada universo:
+Se usan equivalentes libres de Google Fonts, no tipografías propietarias:
 
-| Juego | Tipografía equivalente |
+| Juego | Tipografía |
 | --- | --- |
 | Cyberpunk 2077 | Orbitron |
 | Hades | Cinzel |
@@ -392,5 +210,26 @@ visual de cada universo:
 | Genshin Impact | Crimson Pro |
 | Red Dead Redemption 2 | Roboto Slab |
 
-Se aplican a los títulos de la ficha y a los nombres de las cartas; el texto
-de lectura mantiene la tipografía general para conservar legibilidad.
+Se aplican a títulos y cartas; el texto de lectura mantiene una fuente general.
+
+## Proceso de colaboración
+
+La configuración de agentes, skills, prompt base y criterios de colaboración
+está en
+[`/.github/copilot-instructions.md`](./.github/copilot-instructions.md).
+
+El proyecto fue dirigido por su propietario: definió la intención, los modelos,
+la experiencia, la estética, las iteraciones y las conexiones entre frontend,
+backend, MongoDB y Render. La IA se utilizó como apoyo para sugerencias
+técnicas, visuales y de validación. La distribución declarada del proceso es
+aproximadamente 90% dirección, decisiones, integración y revisión del
+propietario, y 10% sugerencias asistidas por IA.
+
+## Historial de trabajo
+
+El repositorio conserva ramas de trabajo y pull requests integrados, entre
+ellos:
+
+- [PR #1 — entrega final del diario gamer](https://github.com/AshenThread/diario-gamer/pull/1)
+- [PR #5 — tipografías temáticas](https://github.com/AshenThread/diario-gamer/pull/5)
+- [PR #7 — glitch de código y copy personal](https://github.com/AshenThread/diario-gamer/pull/7)
