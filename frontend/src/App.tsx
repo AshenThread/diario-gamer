@@ -4,6 +4,16 @@ import { crearPartida, listarPartidas, obtenerResumen } from "./api/partidasApi"
 import { ESTADOS, GENEROS, PLATAFORMAS, type Estado, type Genero, type LogroFormulario, type Partida, type Plataforma, type Resumen, type Videojuego } from "./tipos";
 
 const LOGRO_VACIO: LogroFormulario = { nombre: "", descripcion: "", obtenido: false };
+const PLANTILLAS_LOGROS: LogroFormulario[] = [
+  { nombre: "Tutorial completado", descripcion: "Completa el tutorial inicial.", obtenido: false },
+  { nombre: "Primera misión", descripcion: "Completa la primera misión principal.", obtenido: false },
+  { nombre: "Mundo abierto explorado", descripcion: "Entra y explora el mundo abierto.", obtenido: false },
+  { nombre: "Juego terminado", descripcion: "Completa la historia principal.", obtenido: false },
+  { nombre: "Nueva partida plus", descripcion: "Desbloquea el modo Nueva partida plus.", obtenido: false },
+  { nombre: "Nivel máximo", descripcion: "Lleva a tu personaje al nivel máximo.", obtenido: false },
+  { nombre: "Todos los coleccionables", descripcion: "Consigue todos los objetos coleccionables.", obtenido: false },
+  { nombre: "Todos los trofeos", descripcion: "Consigue todos los trofeos de la plataforma.", obtenido: false },
+];
 const FECHA_HOY = new Date().toISOString().slice(0, 10);
 
 function slugPortada(nombre: string): string {
@@ -31,6 +41,7 @@ export function App() {
   const [plataforma, setPlataforma] = useState<Plataforma>("PC");
   const [estado, setEstado] = useState<Estado>("jugando");
   const [logros, setLogros] = useState<LogroFormulario[]>([{ ...LOGRO_VACIO }]);
+  const [plantillaSeleccionada, setPlantillaSeleccionada] = useState("");
   const [filtroEstado, setFiltroEstado] = useState<Estado | "">("");
   const [filtroPlataforma, setFiltroPlataforma] = useState<Plataforma | "">("");
   const [cargando, setCargando] = useState(true);
@@ -104,6 +115,7 @@ export function App() {
       setPlataforma("PC");
       setEstado("jugando");
       setLogros([{ ...LOGRO_VACIO }]);
+      setPlantillaSeleccionada("");
       setAviso(`Guardado en MongoDB: ${creado.nombre} (${creado._id}).`);
       await cargar();
     } catch (err) {
@@ -248,6 +260,33 @@ export function App() {
 
         <fieldset>
           <legend>Logros <span>(opcional)</span></legend>
+          <div className="logro-acciones">
+            <label>
+              Plantilla de logro
+              <select value={plantillaSeleccionada} onChange={(evento) => setPlantillaSeleccionada(evento.target.value)}>
+                <option value="">Selecciona una plantilla</option>
+                {PLANTILLAS_LOGROS.map((plantilla) => (
+                  <option key={plantilla.nombre} value={plantilla.nombre}>{plantilla.nombre}</option>
+                ))}
+              </select>
+            </label>
+            <button
+              type="button"
+              className="ghost"
+              disabled={!plantillaSeleccionada}
+              onClick={() => {
+                const plantilla = PLANTILLAS_LOGROS.find((item) => item.nombre === plantillaSeleccionada);
+                if (!plantilla) return;
+                const filas = logros.some((item) => item.nombre.trim() === "")
+                  ? logros.filter((item) => item.nombre.trim() !== "")
+                  : logros;
+                setLogros([...filas, { ...plantilla }]);
+                setPlantillaSeleccionada("");
+              }}
+            >
+              Añadir plantilla
+            </button>
+          </div>
           {logros.map((logro, indice) => (
             <div className="logro-fila" key={indice}>
               <input
@@ -280,6 +319,14 @@ export function App() {
                 />
                 Obtenido
               </label>
+              <button
+                type="button"
+                className="remove-logro"
+                aria-label={`Quitar logro ${logro.nombre || "sin nombre"}`}
+                onClick={() => setLogros(logros.filter((_, posicion) => posicion !== indice))}
+              >
+                Quitar
+              </button>
             </div>
           ))}
           <button
@@ -287,7 +334,7 @@ export function App() {
             className="ghost"
             onClick={() => setLogros([...logros, { ...LOGRO_VACIO }])}
           >
-            Añadir logro
+            Añadir logro personalizado
           </button>
         </fieldset>
 

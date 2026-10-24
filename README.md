@@ -63,6 +63,12 @@ Cada logro:
 | descripcion | string, por defecto `""`, trim |
 | obtenido | boolean (verdadero o falso), por defecto `false` |
 
+El frontend ofrece plantillas para registrar hitos personales de progreso:
+tutorial completado, primera misión, mundo abierto explorado, juego terminado,
+nueva partida plus, nivel máximo, todos los coleccionables y todos los trofeos.
+También permite agregar logros personalizados. Cada hito se puede marcar como
+obtenido desde el formulario o desde la tarjeta del videojuego.
+
 Mongoose asigna `_id` al videojuego y a cada logro. Un ObjectId es el identificador de un documento: 24 caracteres hexadecimales (dígitos `0-9` y letras `a-f`). La colección se llama `videojuegos`. El modelo se llama `Videojuego`, que es el nombre que Partida usará en su `ref`.
 
 Al crear, los campos de más se ignoran. El `_id` lo genera MongoDB. Si envías `logros` en un PATCH del juego, ese arreglo sustituye al anterior; para marcar uno solo usa el endpoint del logro.
