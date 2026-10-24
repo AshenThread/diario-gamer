@@ -54,28 +54,46 @@ code { font-family: "Courier New", monospace; font-size: .82em; }
 .hero-link:hover { border-color: #c9a227; color: #6d5510; }
 .hero-link:hover span { transform: translateY(3px); }
 .hero-count { color: rgba(0, 0, 0, .55); font-family: "Courier New", monospace; font-size: 11px; }
-.hero-art {
-  border: 1px solid #000;
-  height: 250px;
+.hero-collage {
+  height: 280px;
   justify-self: center;
-  overflow: hidden;
+  max-width: 330px;
   position: relative;
-  transform: rotate(2deg);
-  width: min(190px, 100%);
+  width: 100%;
 }
-.hero-art::after { border: 1px solid rgba(255, 255, 255, .7); content: ""; inset: 8px; pointer-events: none; position: absolute; }
-.hero-art img { height: 100%; object-fit: cover; transition: transform .5s cubic-bezier(.2,.8,.2,1); width: 100%; }
-.hero-art:hover img { transform: scale(1.06) rotate(-2deg); }
-.hero-art span {
+.hero-collage::after {
+  border: 1px solid rgba(0, 0, 0, .7);
+  content: "";
+  inset: 9px 12px 8px 10px;
+  pointer-events: none;
+  position: absolute;
+  transform: rotate(-1deg);
+}
+.hero-collage img {
+  border: 1px solid #000;
+  box-shadow: 4px 4px 0 rgba(0, 0, 0, .16);
+  height: 178px;
+  object-fit: cover;
+  position: absolute;
+  transition: transform .45s cubic-bezier(.2,.8,.2,1), z-index 0s;
+  width: 124px;
+}
+.hero-collage .cover-one { left: 7%; top: 8px; transform: rotate(-8deg); }
+.hero-collage .cover-two { left: 27%; top: 40px; transform: rotate(4deg); z-index: 2; }
+.hero-collage .cover-three { right: 4%; top: 4px; transform: rotate(10deg); }
+.hero-collage .cover-four { bottom: 0; left: 17%; transform: rotate(7deg); z-index: 3; }
+.hero-collage .cover-five { bottom: 4px; right: 11%; transform: rotate(-7deg); z-index: 2; }
+.hero-collage img:hover { transform: translateY(-8px) rotate(0deg) scale(1.04); z-index: 5; }
+.hero-collage span {
   bottom: 24px;
-  color: #202020;
+  color: #000;
   font-size: 12px;
   font-weight: 700;
   left: 16px;
   line-height: 1.05;
   position: absolute;
   text-transform: uppercase;
-  z-index: 1;
+  z-index: 6;
 }
 
 .eyebrow {
@@ -283,7 +301,8 @@ button:disabled { cursor: wait; opacity: .5; transform: none; }
 @media (max-width: 700px) {
   .page { padding-top: 20px; }
   .hero { grid-template-columns: 1fr; min-height: 430px; padding-top: 80px; }
-  .hero-art { height: 210px; justify-self: start; width: 150px; }
+  .hero-collage { height: 250px; justify-self: start; max-width: 300px; }
+  .hero-collage img { height: 160px; width: 110px; }
   .lead { margin-top: 20px; }
   .fila, .logro-fila, .logro-acciones, .edicion-fila { grid-template-columns: 1fr; }
   .section-heading { align-items: start; gap: 24px; flex-direction: column; }

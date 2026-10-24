@@ -23,7 +23,6 @@ const PLANTILLAS_LOGROS: LogroFormulario[] = [
   { nombre: "Todos los trofeos", descripcion: "Consigue todos los trofeos de la plataforma.", obtenido: false },
 ];
 const FECHA_HOY = new Date().toISOString().slice(0, 10);
-
 function slugPortada(nombre: string): string {
   return nombre.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase()
     .replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
@@ -228,6 +227,7 @@ function DetalleJuego({ juego: juegoInicial, onBack, onChanged }: DetalleJuegoPr
 
 export function App() {
   const [juegos, setJuegos] = useState<Videojuego[]>([]);
+  const [heroIndex, setHeroIndex] = useState(0);
   const [nombre, setNombre] = useState("");
   const [genero, setGenero] = useState<Genero | "">("");
   const [descripcion, setDescripcion] = useState("");
@@ -455,9 +455,37 @@ export function App() {
     );
   }
 
+  const juegoHero = juegos[heroIndex];
+  const temaHero = temaJuego(juegoHero?.nombre ?? "");
+  const cambiarHero = (direccion: number) => {
+    if (juegos.length < 2) return;
+    setHeroIndex((actual) => (actual + direccion + juegos.length) % juegos.length);
+  };
+  const posicionHero = (indice: number) => {
+    if (juegos.length === 0) return "hero-card-hidden";
+    const distancia = (indice - heroIndex + juegos.length) % juegos.length;
+    if (distancia === 0) return "hero-card-active";
+    if (distancia === 1) return "hero-card-right";
+    if (distancia === juegos.length - 1) return "hero-card-left";
+    return "hero-card-hidden";
+  };
+
   return (
-    <main className="page">
-      <header className="hero">
+    <main className="page home-page" style={estiloTema(temaHero)}>
+      <header
+        className="hero"
+        onWheel={(evento) => {
+          if (Math.abs(evento.deltaY) < 8) return;
+          evento.preventDefault();
+          cambiarHero(evento.deltaY > 0 ? 1 : -1);
+        }}
+        onKeyDown={(evento) => {
+          if (evento.key === "ArrowRight" || evento.key === "ArrowDown") cambiarHero(1);
+          if (evento.key === "ArrowLeft" || evento.key === "ArrowUp") cambiarHero(-1);
+        }}
+        tabIndex={0}
+        aria-label="Baraja de juegos de la colección. Usa las flechas o la rueda del mouse para cambiar."
+      >
         <div>
           <p className="eyebrow">Archivo personal / 2024—25</p>
           <h1>Qué estoy<br /><em>jugando</em></h1>
@@ -466,13 +494,38 @@ export function App() {
             <span className="hero-count">{juegos.length} {juegos.length === 1 ? "juego" : "juegos"} guardados</span>
           </div>
         </div>
-        <div className="hero-art" aria-label="Composición gráfica del diario gamer">
-          <img src="/img2/1.svg" alt="" />
-          <span>Registro<br />de partidas</span>
+        <div className="hero-deck" aria-live="polite">
+          {juegos.map((juego, indice) => (
+            <button
+              key={juego._id}
+              type="button"
+              className={`hero-card ${posicionHero(indice)}`}
+              onClick={() => setHeroIndex(indice)}
+              aria-label={`Seleccionar ${juego.nombre}`}
+              aria-pressed={indice === heroIndex}
+            >
+              <img
+                src={`/img/${slugPortada(juego.nombre)}.png`}
+                alt=""
+                aria-hidden="true"
+                onError={(evento) => {
+                  evento.currentTarget.onerror = null;
+                  evento.currentTarget.src = `/img2/${(juego._id.charCodeAt(0) % 3) + 1}.svg`;
+                }}
+              />
+              <span>{juego.nombre}</span>
+            </button>
+          ))}
+          <div className="hero-deck-controls">
+            <button type="button" onClick={() => cambiarHero(-1)} aria-label="Juego anterior">←</button>
+            <span>{juegos.length ? `${heroIndex + 1} / ${juegos.length}` : "0 / 0"}</span>
+            <button type="button" onClick={() => cambiarHero(1)} aria-label="Siguiente juego">→</button>
+          </div>
         </div>
         <p className="lead">
-          Un registro vivo de partidas, plataformas y logros. Añade una entrada y deja que el
-          archivo crezca contigo.
+          {juegoHero
+            ? `Ahora estás viendo ${juegoHero.nombre}. Cambia de portada con la rueda del mouse.`
+            : "Un registro vivo de partidas, plataformas y logros."}
         </p>
       </header>
 
