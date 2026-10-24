@@ -120,14 +120,21 @@ code { font-family: "Courier New", monospace; font-size: .82em; }
   background: var(--game-ink, #000);
   border-color: var(--game-ink, #000);
   color: var(--game-contrast, #fff);
-  min-width: 58px;
-  padding: 12px 16px;
+  font-size: 16px;
+  min-height: 38px;
+  min-width: 44px;
+  padding: 7px 10px;
 }
 .hero-deck-controls span { color: var(--game-ink, #000); font: 12px "Courier New", monospace; min-width: 42px; text-align: center; }
 .home-page .lead { border-color: var(--game-accent, #000); transition: border-color .55s ease; }
 .home-page .hero-link { border-color: var(--game-ink, #000); color: var(--game-ink, #000); }
 .home-page .hero-link:hover { border-color: var(--game-accent, #000); color: var(--game-ink, #000); }
 .home-page h1 em { color: var(--game-ink, #000); transition: color .55s ease; }
+.hero-title {
+  animation: title-glitch 4.8s steps(1, end) infinite;
+  position: relative;
+}
+.hero-title:hover, .hero-title:focus-visible { animation: title-glitch-hover .75s steps(1, end); }
 .hero:focus-visible { outline: 2px solid var(--game-accent, #000); outline-offset: 5px; }
 .hero[tabindex] { cursor: default; }
 
@@ -331,6 +338,19 @@ button:disabled { cursor: wait; opacity: .5; transform: none; }
 @keyframes detail-reveal {
   from { opacity: 0; transform: translateY(12px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes title-glitch {
+  0%, 88%, 100% { opacity: 1; }
+  89% { color: var(--game-accent, #c9a227); font-family: "Courier New", monospace; letter-spacing: -.02em; text-shadow: 3px 0 var(--game-ink, #000), -3px 0 var(--game-accent, #c9a227); transform: skewX(-2deg); }
+  91% { color: inherit; font-family: inherit; letter-spacing: inherit; text-shadow: none; transform: none; }
+  93% { color: var(--game-ink, #000); text-shadow: -2px 0 var(--game-accent, #c9a227); transform: translateX(-2px); }
+}
+
+@keyframes title-glitch-hover {
+  0%, 100% { color: inherit; font-family: inherit; text-shadow: none; transform: none; }
+  35% { color: var(--game-accent, #c9a227); font-family: "Courier New", monospace; letter-spacing: -.02em; text-shadow: 3px 0 var(--game-ink, #000), -3px 0 var(--game-accent, #c9a227); transform: skewX(-2deg); }
+  60% { color: var(--game-ink, #000); text-shadow: -2px 0 var(--game-accent, #c9a227); transform: translateX(-2px); }
 }
 
 @media (max-width: 700px) {

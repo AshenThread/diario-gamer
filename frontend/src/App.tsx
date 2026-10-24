@@ -483,7 +483,13 @@ export function App() {
       >
         <div>
           <p className="eyebrow">Archivo personal / 2024—25</p>
-          <h1>Qué estoy<br /><em>jugando</em></h1>
+          <h1
+            key={juegoHero?._id ?? "sin-juego"}
+            className="hero-title"
+            aria-label="Qué estoy jugando"
+          >
+            Qué estoy<br /><em>jugando</em>
+          </h1>
           <div className="hero-actions">
             <a className="hero-link" href="#coleccion">Ver colección <span>↓</span></a>
             <span className="hero-count">{juegos.length} {juegos.length === 1 ? "juego" : "juegos"} guardados</span>
