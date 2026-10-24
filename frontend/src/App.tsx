@@ -35,19 +35,20 @@ type GameTheme = {
   contrast: string;
   shapeDirection: number;
   shapeSpeed: number;
+  titleFont: string;
 };
 
 function temaJuego(nombre: string): GameTheme {
   const temas: Record<string, GameTheme> = {
-    "cyberpunk-2077": { ink: "#151515", accent: "#f0e900", paper: "#fffde6", contrast: "#131313", shapeDirection: 1, shapeSpeed: 7 },
-    "red-dead-redemption-2": { ink: "#24100e", accent: "#d83b32", paper: "#fff2df", contrast: "#fffaf2", shapeDirection: -1, shapeSpeed: 9 },
-    hades: { ink: "#261115", accent: "#f05a28", paper: "#fff0e6", contrast: "#fffaf5", shapeDirection: 1, shapeSpeed: 6 },
-    celeste: { ink: "#20133a", accent: "#9adcf1", paper: "#f3efff", contrast: "#171225", shapeDirection: -1, shapeSpeed: 8 },
-    "hollow-knight": { ink: "#101a2c", accent: "#46d9ef", paper: "#edf7fb", contrast: "#f8ffff", shapeDirection: 1, shapeSpeed: 10 },
-    "hollow-knight-silksong": { ink: "#32151a", accent: "#eb4a3d", paper: "#fff0e9", contrast: "#fff9f5", shapeDirection: -1, shapeSpeed: 7 },
-    "genshin-impact": { ink: "#10284c", accent: "#8ddcff", paper: "#edf8ff", contrast: "#11233d", shapeDirection: 1, shapeSpeed: 11 },
+    "cyberpunk-2077": { ink: "#151515", accent: "#f0e900", paper: "#fffde6", contrast: "#131313", shapeDirection: 1, shapeSpeed: 7, titleFont: '"Orbitron", sans-serif' },
+    "red-dead-redemption-2": { ink: "#24100e", accent: "#d83b32", paper: "#fff2df", contrast: "#fffaf2", shapeDirection: -1, shapeSpeed: 9, titleFont: '"Roboto Slab", serif' },
+    hades: { ink: "#261115", accent: "#f05a28", paper: "#fff0e6", contrast: "#fffaf5", shapeDirection: 1, shapeSpeed: 6, titleFont: '"Cinzel", serif' },
+    celeste: { ink: "#20133a", accent: "#9adcf1", paper: "#f3efff", contrast: "#171225", shapeDirection: -1, shapeSpeed: 8, titleFont: '"Quicksand", sans-serif' },
+    "hollow-knight": { ink: "#101a2c", accent: "#46d9ef", paper: "#edf7fb", contrast: "#f8ffff", shapeDirection: 1, shapeSpeed: 10, titleFont: '"IM Fell English SC", serif' },
+    "hollow-knight-silksong": { ink: "#32151a", accent: "#eb4a3d", paper: "#fff0e9", contrast: "#fff9f5", shapeDirection: -1, shapeSpeed: 7, titleFont: '"IM Fell English SC", serif' },
+    "genshin-impact": { ink: "#10284c", accent: "#8ddcff", paper: "#edf8ff", contrast: "#11233d", shapeDirection: 1, shapeSpeed: 11, titleFont: '"Crimson Pro", serif' },
   };
-  return temas[slugPortada(nombre)] ?? { ink: "#171717", accent: "#c9a227", paper: "#fbf7ea", contrast: "#171717", shapeDirection: 1, shapeSpeed: 8 };
+  return temas[slugPortada(nombre)] ?? { ink: "#171717", accent: "#c9a227", paper: "#fbf7ea", contrast: "#171717", shapeDirection: 1, shapeSpeed: 8, titleFont: '"Arial", sans-serif' };
 }
 
 function estiloTema(tema: GameTheme): CSSProperties {
@@ -58,6 +59,7 @@ function estiloTema(tema: GameTheme): CSSProperties {
     "--game-contrast": tema.contrast,
     "--shape-direction": tema.shapeDirection,
     "--shape-speed": `${tema.shapeSpeed}s`,
+    "--game-title-font": tema.titleFont,
   } as CSSProperties;
 }
 

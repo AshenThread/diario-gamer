@@ -1,3 +1,5 @@
+@import url("https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Crimson+Pro:wght@600;700&family=IM+Fell+English+SC&family=Orbitron:wght@600;700&family=Quicksand:wght@600;700&family=Roboto+Slab:wght@600;700&display=swap");
+
 :root {
   color: #000;
   background: var(--page-paper, #fff);
@@ -199,6 +201,7 @@ code { font-family: "Courier New", monospace; font-size: .82em; }
   bottom: 0;
   color: #fff;
   font-size: 12px;
+  font-family: var(--game-title-font, Arial, sans-serif);
   font-weight: 700;
   left: 0;
   line-height: 1.15;
@@ -491,6 +494,13 @@ button:disabled { cursor: wait; opacity: .5; transform: none; }
 .detail-cover { height: 420px; }
 .detail-cover img { box-shadow: 13px 13px 0 var(--game-accent, #c9a227); }
 .detail-intro h1 { font-size: clamp(3rem, 8vw, 7rem); line-height: .9; margin: 0; }
+.detail-intro h1,
+.detail-page h2,
+.detail-page h3,
+.game-title,
+.hero-card span {
+  font-family: var(--game-title-font, Arial, sans-serif);
+}
 .detail-meta { font-family: "Courier New", monospace; font-size: 12px; margin: 24px 0; text-transform: uppercase; }
 .detail-description { font-size: 18px; line-height: 1.5; max-width: 620px; }
 .detail-section { padding: 58px 0; }
