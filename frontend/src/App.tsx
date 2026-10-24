@@ -160,7 +160,7 @@ function DetalleJuego({ juego: juegoInicial, onBack, onChanged }: DetalleJuegoPr
         </div>
         <div className="detail-intro">
           <p className="eyebrow">Ficha del juego</p>
-          <h1>{juego.nombre}</h1>
+          <h1 className="glitch-title" aria-label={juego.nombre}>{juego.nombre}<span className="glitch-code" aria-hidden="true">{`// ${slugPortada(juego.nombre)} :: 0x7F`}</span></h1>
           <p className="detail-meta">{juego.genero} · {juego.plataforma} · {juego.estado}</p>
           <p className="detail-description">{juego.descripcion || "Este juego todavía no tiene descripción."}</p>
         </div>
@@ -173,7 +173,7 @@ function DetalleJuego({ juego: juegoInicial, onBack, onChanged }: DetalleJuegoPr
         <div className="section-heading">
           <div>
             <p className="eyebrow">Progreso calculado</p>
-            <h2>Resumen de <em>{juego.nombre}</em></h2>
+            <h2 className="glitch-title" aria-label={`Resumen de ${juego.nombre}`}>Resumen de <em>{juego.nombre}</em><span className="glitch-code" aria-hidden="true">0x7F // PROGRESO_SYNC</span></h2>
           </div>
         </div>
         <dl className="detail-stats">
@@ -187,7 +187,7 @@ function DetalleJuego({ juego: juegoInicial, onBack, onChanged }: DetalleJuegoPr
       <section className="detail-section">
         <p className="eyebrow">Hitos personales</p>
         <div className="detail-achievement-heading">
-          <h2>Logros <em>{logrosObtenidos}/{juego.logros.length}</em></h2>
+          <h2 className="glitch-title" aria-label={`Logros ${logrosObtenidos} de ${juego.logros.length}`}>Logros <em>{logrosObtenidos}/{juego.logros.length}</em><span className="glitch-code" aria-hidden="true">ACHV // 0x7F</span></h2>
           <span>{porcentajeLogros}% completado</span>
         </div>
         <div className="progress-track" aria-label={`${porcentajeLogros}% de logros completados`}>
@@ -207,7 +207,7 @@ function DetalleJuego({ juego: juegoInicial, onBack, onChanged }: DetalleJuegoPr
 
       <section className="detail-section">
         <p className="eyebrow">Registro de sesiones</p>
-        <h2>Añadir una <em>partida</em></h2>
+        <h2 className="glitch-title" aria-label="Añadir una partida">Añadir una <em>partida</em><span className="glitch-code" aria-hidden="true">RUN // NEW_SESSION</span></h2>
         <form className="partida-form detail-partida-form" onSubmit={guardarPartida}>
           <label>Fecha<input type="date" value={fecha} onChange={(evento) => setFecha(evento.target.value)} /></label>
           <label>Minutos<input type="number" min="1" max="1440" value={duracion} onChange={(evento) => setDuracion(evento.target.value)} /></label>
@@ -516,10 +516,10 @@ export function App() {
           <p className="eyebrow">Isma / 2026—27</p>
           <h1
             key={juegoHero?._id ?? "sin-juego"}
-            className="hero-title"
+            className="hero-title glitch-title"
             aria-label="Qué estoy jugando"
           >
-            Qué estoy<br /><em>jugando</em>
+            Qué estoy<br /><em>jugando</em><span className="glitch-code" aria-hidden="true">&gt; ISMA // PLAY_MODE :: 0x7F</span>
           </h1>
           <div className="hero-actions">
             <a className="hero-link" href="#coleccion">Ver colección <span>↓</span></a>
@@ -563,7 +563,7 @@ export function App() {
       </section>
 
       <details className="panel create-panel" open>
-        <summary><span>01</span><strong>Añadir al archivo</strong><i>+</i></summary>
+        <summary><span>01</span><strong>Añadir a mi diario</strong><i>+</i></summary>
         <form className="panel-content" onSubmit={enviar}>
         <h2>Nuevo videojuego</h2>
         <label>
@@ -701,7 +701,7 @@ export function App() {
         {aviso ? <p className="aviso">{aviso}</p> : null}
 
         <button type="submit" disabled={guardando}>
-          {guardando ? "Guardando…" : "Guardar en MongoDB"}
+          {guardando ? "Guardando…" : "Guardar en mi diario"}
         </button>
         </form>
       </details>
@@ -709,8 +709,8 @@ export function App() {
       <section className="library" id="coleccion">
         <div className="section-heading">
           <div>
-            <p className="eyebrow">02 / Colección</p>
-            <h2>En la base <em>diario_gamer</em></h2>
+            <p className="eyebrow">02 / Mi colección</p>
+            <h2 className="glitch-title" aria-label="Mis juegos guardados">Mis juegos <em>guardados</em><span className="glitch-code" aria-hidden="true">COLLECTION // LOCAL_MEMORY</span></h2>
           </div>
         </div>
         <details className="filters">
@@ -823,10 +823,11 @@ export function App() {
                       <div>
                         <button
                           type="button"
-                          className="game-title"
+                          className="game-title glitch-title"
+                          aria-label={`Ver detalle de ${juego.nombre}`}
                           onClick={() => { window.location.hash = `/juego/${encodeURIComponent(juego._id)}`; }}
                         >
-                          {juego.nombre}
+                          {juego.nombre}<span className="glitch-code" aria-hidden="true">GAME // 0x7F</span>
                         </button>
                         <span className="platform">{juego.genero} · {juego.plataforma}</span>
                         {juego.descripcion ? <p className="game-description">{juego.descripcion}</p> : null}
