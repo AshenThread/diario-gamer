@@ -200,11 +200,17 @@ code { font-family: "Courier New", monospace; font-size: .82em; }
 .hero-deck:has(.hero-card-left:hover) .hero-card-active,
 .hero-deck:has(.hero-card-right:hover) .hero-card-active {
   opacity: .16;
+  transform: translateX(-50%) rotate(0deg) scale(.76);
 }
 .hero-deck:has(.hero-card-left:hover) .hero-card-left,
 .hero-deck:has(.hero-card-right:hover) .hero-card-right {
   opacity: 1;
   z-index: 7;
+}
+.hero-deck:has(.hero-card-left:hover) .hero-card-right,
+.hero-deck:has(.hero-card-right:hover) .hero-card-left {
+  opacity: .3;
+  transform: var(--hero-card-transform) scale(.72);
 }
 .hero-deck-controls {
   align-items: center;
@@ -469,6 +475,27 @@ button:disabled { cursor: wait; opacity: .5; transform: none; }
   0%, 100% { color: inherit; font-family: inherit; text-shadow: none; transform: none; }
   35% { color: var(--game-accent, #c9a227); font-family: "Courier New", monospace; letter-spacing: -.02em; text-shadow: 3px 0 var(--game-ink, #000), -3px 0 var(--game-accent, #c9a227); transform: skewX(-2deg); }
   60% { color: var(--game-ink, #000); text-shadow: -2px 0 var(--game-accent, #c9a227); transform: translateX(-2px); }
+}
+
+@keyframes heading-glitch {
+  0%, 91%, 100% { opacity: 1; transform: translateX(0); }
+  92% { color: var(--game-accent, #c9a227); text-shadow: 2px 0 var(--game-ink, #000), -2px 0 var(--game-accent, #c9a227); transform: skewX(-1deg); }
+  94% { color: inherit; text-shadow: none; transform: translateX(0); }
+  96% { color: var(--game-ink, #000); text-shadow: -2px 0 var(--game-accent, #c9a227); transform: translateX(2px); }
+}
+
+.home-page h2,
+.home-page h3,
+.detail-page h2,
+.detail-page h3 {
+  animation: heading-glitch 7s steps(1, end) infinite;
+  will-change: transform, text-shadow;
+}
+.home-page h2:hover,
+.home-page h3:hover,
+.detail-page h2:hover,
+.detail-page h3:hover {
+  animation: title-glitch-hover .75s steps(1, end);
 }
 
 @keyframes theme-drift {
