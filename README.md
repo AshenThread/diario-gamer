@@ -376,3 +376,21 @@ Después de crear los servicios, copia las URLs asignadas en esta sección:
 - Backend: `https://<web-service-generado-por-render>.onrender.com`
 
 No se incluyen valores reales en el repositorio ni en los archivos `.env.example`.
+
+## Tipografías por juego
+
+La interfaz no copia ni distribuye las tipografías propietarias de las marcas.
+Usa equivalentes libres cargadas desde Google Fonts para conservar la intención
+visual de cada universo:
+
+| Juego | Tipografía equivalente |
+| --- | --- |
+| Cyberpunk 2077 | Orbitron |
+| Hades | Cinzel |
+| Celeste | Quicksand |
+| Hollow Knight / Silksong | IM Fell English SC |
+| Genshin Impact | Crimson Pro |
+| Red Dead Redemption 2 | Roboto Slab |
+
+Se aplican a los títulos de la ficha y a los nombres de las cartas; el texto
+de lectura mantiene la tipografía general para conservar legibilidad.
