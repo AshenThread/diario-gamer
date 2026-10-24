@@ -326,8 +326,53 @@ Borra el videojuego. La primera línea de la respuesta debe decir `204`.
 
 Sustituye `ID_DEL_JUEGO` e `ID_DEL_LOGRO` por los valores que devolvió el POST.
 
-## Siguiente: etapa 3
+## Ejecutar el proyecto completo
 
-- Modelo Partida, con referencia a `Videojuego`, y sus rutas.
-- Resumen en el servicio: 404 si el juego no existe; ceros y null si no hay partidas; si hay, la fórmula de arriba.
-- Despliegue en Render: un servicio para el backend y otro para el frontend.
+Requisitos: Node.js 20 o superior, una base de MongoDB Atlas (o MongoDB local)
+y npm.
+
+### Backend
+
+```bash
+cd backend
+cp .env.example .env
+npm install
+npm run dev
+```
+
+Completa `MONGODB_URI` en `backend/.env`. `CORS_ORIGIN` debe apuntar al
+frontend local (`http://localhost:5174`) o a la URL pública del Static Site.
+
+### Frontend
+
+En otra terminal:
+
+```bash
+cd frontend
+cp .env.example .env
+npm install
+npm run dev
+```
+
+`VITE_API_URL` debe apuntar al backend. Para una compilación de entrega:
+
+```bash
+cd frontend && npm run build
+cd ../backend && npm run typecheck && npm run build
+```
+
+## Despliegue en Render
+
+`render.yaml` define dos servicios:
+
+- Backend: `diario-gamer-api`, con `MONGODB_URI`, `MONGODB_DB`,
+  `CORS_ORIGIN` y `PORT`.
+- Frontend: `diario-gamer-web`, con `VITE_API_URL`.
+
+Las URLs públicas dependen de la cuenta y del despliegue activo de Render.
+Después de crear los servicios, copia las URLs asignadas en esta sección:
+
+- Frontend: `https://<static-site-generado-por-render>.onrender.com`
+- Backend: `https://<web-service-generado-por-render>.onrender.com`
+
+No se incluyen valores reales en el repositorio ni en los archivos `.env.example`.
