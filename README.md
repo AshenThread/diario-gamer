@@ -64,8 +64,10 @@ Cada logro:
 | obtenido | boolean (verdadero o falso), por defecto `false` |
 
 El frontend ofrece plantillas para registrar hitos personales de progreso:
-tutorial completado, primera misión, mundo abierto explorado, juego terminado,
-nueva partida plus, nivel máximo, todos los coleccionables y todos los trofeos.
+tutorial completado, primera misión, mundo abierto explorado, zonas 1 a 5,
+mapa completo, todas las regiones descubiertas, áreas secretas encontradas,
+juego terminado, nueva partida plus, nivel máximo, todos los coleccionables y
+todos los trofeos.
 También permite agregar logros personalizados. Cada hito se puede marcar como
 obtenido desde el formulario o desde la tarjeta del videojuego.
 
