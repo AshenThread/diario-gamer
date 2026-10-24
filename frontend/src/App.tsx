@@ -33,19 +33,21 @@ type GameTheme = {
   accent: string;
   paper: string;
   contrast: string;
+  shapeDirection: number;
+  shapeSpeed: number;
 };
 
 function temaJuego(nombre: string): GameTheme {
   const temas: Record<string, GameTheme> = {
-    "cyberpunk-2077": { ink: "#151515", accent: "#f0e900", paper: "#fffde6", contrast: "#131313" },
-    "red-dead-redemption-2": { ink: "#24100e", accent: "#d83b32", paper: "#fff2df", contrast: "#fffaf2" },
-    hades: { ink: "#261115", accent: "#f05a28", paper: "#fff0e6", contrast: "#fffaf5" },
-    celeste: { ink: "#20133a", accent: "#9adcf1", paper: "#f3efff", contrast: "#171225" },
-    "hollow-knight": { ink: "#101a2c", accent: "#46d9ef", paper: "#edf7fb", contrast: "#f8ffff" },
-    "hollow-knight-silksong": { ink: "#32151a", accent: "#eb4a3d", paper: "#fff0e9", contrast: "#fff9f5" },
-    "genshin-impact": { ink: "#10284c", accent: "#8ddcff", paper: "#edf8ff", contrast: "#11233d" },
+    "cyberpunk-2077": { ink: "#151515", accent: "#f0e900", paper: "#fffde6", contrast: "#131313", shapeDirection: 1, shapeSpeed: 7 },
+    "red-dead-redemption-2": { ink: "#24100e", accent: "#d83b32", paper: "#fff2df", contrast: "#fffaf2", shapeDirection: -1, shapeSpeed: 9 },
+    hades: { ink: "#261115", accent: "#f05a28", paper: "#fff0e6", contrast: "#fffaf5", shapeDirection: 1, shapeSpeed: 6 },
+    celeste: { ink: "#20133a", accent: "#9adcf1", paper: "#f3efff", contrast: "#171225", shapeDirection: -1, shapeSpeed: 8 },
+    "hollow-knight": { ink: "#101a2c", accent: "#46d9ef", paper: "#edf7fb", contrast: "#f8ffff", shapeDirection: 1, shapeSpeed: 10 },
+    "hollow-knight-silksong": { ink: "#32151a", accent: "#eb4a3d", paper: "#fff0e9", contrast: "#fff9f5", shapeDirection: -1, shapeSpeed: 7 },
+    "genshin-impact": { ink: "#10284c", accent: "#8ddcff", paper: "#edf8ff", contrast: "#11233d", shapeDirection: 1, shapeSpeed: 11 },
   };
-  return temas[slugPortada(nombre)] ?? { ink: "#171717", accent: "#c9a227", paper: "#fbf7ea", contrast: "#171717" };
+  return temas[slugPortada(nombre)] ?? { ink: "#171717", accent: "#c9a227", paper: "#fbf7ea", contrast: "#171717", shapeDirection: 1, shapeSpeed: 8 };
 }
 
 function estiloTema(tema: GameTheme): CSSProperties {
@@ -54,6 +56,8 @@ function estiloTema(tema: GameTheme): CSSProperties {
     "--game-accent": tema.accent,
     "--game-paper": tema.paper,
     "--game-contrast": tema.contrast,
+    "--shape-direction": tema.shapeDirection,
+    "--shape-speed": `${tema.shapeSpeed}s`,
   } as CSSProperties;
 }
 
@@ -282,6 +286,13 @@ export function App() {
   }, []);
 
   useEffect(() => {
+    document.documentElement.style.setProperty(
+      "--page-paper",
+      temaJuego(juegos[heroIndex]?.nombre ?? "").paper,
+    );
+  }, [heroIndex, juegos]);
+
+  useEffect(() => {
     const actualizarRuta = () => {
       const coincidencia = window.location.hash.match(/^#\/juego\/([^/]+)$/);
       setDetalleSeleccionado(coincidencia ? decodeURIComponent(coincidencia[1]) : null);
@@ -472,6 +483,24 @@ export function App() {
 
   return (
     <main className="page home-page" style={estiloTema(temaHero)}>
+      <div className={`background-shapes background-shapes-${slugPortada(juegoHero?.nombre ?? "archivo")}`} aria-hidden="true">
+        <span className="bg-shape bg-triangle bg-one" />
+        <span className="bg-shape bg-square bg-two" />
+        <span className="bg-shape bg-diamond bg-three" />
+        <span className="bg-shape bg-triangle bg-four" />
+        <span className="bg-shape bg-square bg-five" />
+        <span className="bg-shape bg-diamond bg-six" />
+        <span className="bg-shape bg-triangle bg-seven" />
+        <span className="bg-shape bg-square bg-eight" />
+        <span className="bg-shape bg-diamond bg-nine" />
+        <span className="bg-shape bg-square bg-ten" />
+        <span className="bg-shape bg-diamond bg-eleven" />
+        <span className="bg-shape bg-triangle bg-twelve" />
+        <span className="bg-shape bg-square bg-thirteen" />
+        <span className="bg-shape bg-diamond bg-fourteen" />
+        <span className="bg-shape bg-triangle bg-fifteen" />
+        <span className="bg-shape bg-square bg-sixteen" />
+      </div>
       <header
         className="hero"
         onKeyDown={(evento) => {
@@ -482,7 +511,7 @@ export function App() {
         aria-label="Carrusel infinito de juegos de la colección. Usa las flechas para cambiar."
       >
         <div>
-          <p className="eyebrow">Archivo personal / 2024—25</p>
+          <p className="eyebrow">Isma / 2026—27</p>
           <h1
             key={juegoHero?._id ?? "sin-juego"}
             className="hero-title"
@@ -501,9 +530,8 @@ export function App() {
               key={juego._id}
               type="button"
               className={`hero-card ${posicionHero(indice)}`}
-              onClick={() => setHeroIndex(indice)}
-              aria-label={`Seleccionar ${juego.nombre}`}
-              aria-pressed={indice === heroIndex}
+              onClick={() => { window.location.hash = `/juego/${encodeURIComponent(juego._id)}`; }}
+              aria-label={`Abrir ficha de ${juego.nombre}`}
             >
               <img
                 src={`/img/${slugPortada(juego.nombre)}.png`}
@@ -523,12 +551,14 @@ export function App() {
             <button type="button" onClick={() => cambiarHero(1)} aria-label="Siguiente juego">→</button>
           </div>
         </div>
+      </header>
+      <section className="hero-description" aria-live="polite">
         <p className="lead">
           {juegoHero
             ? `Ahora estás viendo ${juegoHero.nombre}. Usa las flechas para recorrer la colección.`
             : "Un registro vivo de partidas, plataformas y logros."}
         </p>
-      </header>
+      </section>
 
       <details className="panel create-panel" open>
         <summary><span>01</span><strong>Añadir al archivo</strong><i>+</i></summary>
