@@ -1,7 +1,7 @@
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { ErrorHttp, actualizarEstado, crearVideojuego, eliminarVideojuego, listarVideojuegos, marcarLogro } from "./api/videojuegosApi";
 import { crearPartida, listarPartidas, obtenerResumen } from "./api/partidasApi";
-import { ESTADOS, PLATAFORMAS, type Estado, type LogroFormulario, type Partida, type Plataforma, type Resumen, type Videojuego } from "./tipos";
+import { ESTADOS, GENEROS, PLATAFORMAS, type Estado, type Genero, type LogroFormulario, type Partida, type Plataforma, type Resumen, type Videojuego } from "./tipos";
 
 const LOGRO_VACIO: LogroFormulario = { nombre: "", descripcion: "", obtenido: false };
 const FECHA_HOY = new Date().toISOString().slice(0, 10);
@@ -26,7 +26,8 @@ function textoError(error: unknown): string {
 export function App() {
   const [juegos, setJuegos] = useState<Videojuego[]>([]);
   const [nombre, setNombre] = useState("");
-  const [genero, setGenero] = useState("");
+  const [genero, setGenero] = useState<Genero | "">("");
+  const [descripcion, setDescripcion] = useState("");
   const [plataforma, setPlataforma] = useState<Plataforma>("PC");
   const [estado, setEstado] = useState<Estado>("jugando");
   const [logros, setLogros] = useState<LogroFormulario[]>([{ ...LOGRO_VACIO }]);
@@ -75,7 +76,7 @@ export function App() {
       setError("El nombre es obligatorio.");
       return;
     }
-    if (!genero.trim()) {
+    if (!genero) {
       setError("El género es obligatorio.");
       return;
     }
@@ -91,13 +92,15 @@ export function App() {
       setGuardando(true);
       const creado = await crearVideojuego({
         nombre: nombreLimpio,
-        genero: genero.trim(),
+        genero,
+        descripcion: descripcion.trim(),
         plataforma,
         estado,
         logros: logrosLimpios,
       });
       setNombre("");
       setGenero("");
+      setDescripcion("");
       setPlataforma("PC");
       setEstado("jugando");
       setLogros([{ ...LOGRO_VACIO }]);
@@ -203,11 +206,18 @@ export function App() {
         </label>
         <label>
           Género
-          <input
-            value={genero}
-            onChange={(evento) => setGenero(evento.target.value)}
-            placeholder="Acción y aventura"
-            required
+          <select value={genero} onChange={(evento) => setGenero(evento.target.value as Genero)} required>
+            <option value="">Selecciona un género</option>
+            {GENEROS.map((item) => <option key={item} value={item}>{item}</option>)}
+          </select>
+        </label>
+        <label>
+          Descripción
+          <textarea
+            value={descripcion}
+            onChange={(evento) => setDescripcion(evento.target.value)}
+            placeholder="Describe brevemente el videojuego."
+            rows={3}
           />
         </label>
         <div className="fila">
@@ -368,6 +378,7 @@ export function App() {
                   <div>
                     <strong>{juego.nombre}</strong>
                     <span className="platform">{juego.genero} · {juego.plataforma}</span>
+                    {juego.descripcion ? <p className="game-description">{juego.descripcion}</p> : null}
                   </div>
                   <button type="button" className="peligro" onClick={() => void borrar(juego._id, juego.nombre)}>
                     Borrar

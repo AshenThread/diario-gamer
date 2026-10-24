@@ -2,9 +2,28 @@ import { Schema, model } from "mongoose";
 
 export const PLATAFORMAS = ["PC", "PlayStation", "Xbox", "Nintendo", "Mobile"] as const;
 export const ESTADOS = ["pendiente", "jugando", "completado", "abandonado"] as const;
+export const GENEROS = [
+  "Acción y aventura",
+  "Acción",
+  "Aventura",
+  "RPG",
+  "Estrategia",
+  "Simulación",
+  "Deportes",
+  "Carreras",
+  "Lucha",
+  "Plataformas",
+  "Terror",
+  "Disparos",
+  "Puzzle",
+  "Roguelike",
+  "Metroidvania",
+  "Novela visual",
+] as const;
 
 export type Plataforma = (typeof PLATAFORMAS)[number];
 export type Estado = (typeof ESTADOS)[number];
+export type Genero = (typeof GENEROS)[number];
 
 export interface LogroAtributos {
   nombre: string;
@@ -14,7 +33,8 @@ export interface LogroAtributos {
 
 export interface VideojuegoAtributos {
   nombre: string;
-  genero: string;
+  genero: Genero;
+  descripcion: string;
   plataforma: Plataforma;
   estado: Estado;
   logros: LogroAtributos[];
@@ -51,6 +71,14 @@ const videojuegoSchema = new Schema<VideojuegoAtributos>(
     genero: {
       type: String,
       required: [true, "El género es obligatorio"],
+      enum: {
+        values: [...GENEROS],
+        message: "El género «{VALUE}» no es válido",
+      },
+    },
+    descripcion: {
+      type: String,
+      default: "",
       trim: true,
     },
     plataforma: {

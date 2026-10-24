@@ -1,4 +1,4 @@
-import type { ErrorApi, Estado, Plataforma, Videojuego } from "../tipos";
+import type { ErrorApi, Estado, Genero, Plataforma, Videojuego } from "../tipos";
 
 const API_ORIGIN = (import.meta.env.VITE_API_URL ?? "").replace(/\/$/, "");
 const BASE = `${API_ORIGIN}/api/videojuegos`;
@@ -59,7 +59,8 @@ export async function listarVideojuegos(filtro: {
 
 export async function crearVideojuego(datos: {
   nombre: string;
-  genero: string;
+  genero: Genero;
+  descripcion: string;
   plataforma: Plataforma;
   estado: Estado;
   logros: { nombre: string; descripcion: string; obtenido: boolean }[];

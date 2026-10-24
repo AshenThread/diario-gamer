@@ -2,13 +2,15 @@ import { Types } from "mongoose";
 import { ErrorIdInvalido, ErrorNoEncontrado, ErrorValidacion } from "../errores/erroresHttp";
 import {
   ESTADOS,
+  GENEROS,
   PLATAFORMAS,
   Videojuego,
   type Estado,
+  type Genero,
   type Plataforma,
 } from "../modelos/Videojuego";
 
-const CAMPOS_ACTUALIZABLES = ["nombre", "genero", "plataforma", "estado", "logros"] as const;
+const CAMPOS_ACTUALIZABLES = ["nombre", "genero", "descripcion", "plataforma", "estado", "logros"] as const;
 type CampoActualizable = (typeof CAMPOS_ACTUALIZABLES)[number];
 
 export interface FiltroListado {
@@ -41,9 +43,16 @@ function exigirNombre(valor: unknown): string {
   return valor;
 }
 
-function exigirGenero(valor: unknown): string {
-  if (typeof valor !== "string" || valor.trim() === "") {
-    throw new ErrorValidacion("El género es obligatorio");
+function exigirGenero(valor: unknown): Genero {
+  if (typeof valor !== "string" || !(GENEROS as readonly string[]).includes(valor)) {
+    throw new ErrorValidacion(`El género debe ser uno de: ${GENEROS.join(", ")}`);
+  }
+  return valor as Genero;
+}
+
+function leerDescripcion(valor: unknown): string {
+  if (typeof valor !== "string") {
+    throw new ErrorValidacion("La descripción debe ser texto");
   }
   return valor.trim();
 }
@@ -109,7 +118,7 @@ function camposPresentes(body: unknown): Partial<Record<CampoActualizable, unkno
     }
   }
   if (Object.keys(datos).length === 0) {
-    throw new ErrorValidacion("Envía al menos un campo: nombre, género, plataforma, estado o logros");
+    throw new ErrorValidacion("Envía al menos un campo: nombre, género, descripción, plataforma, estado o logros");
   }
   return datos;
 }
@@ -141,13 +150,15 @@ export async function crear(body: unknown) {
   const cuerpo = leerObjeto(body);
   const datos: {
     nombre: string;
-    genero: string;
+    genero: Genero;
+    descripcion: string;
     plataforma: Plataforma;
     estado: Estado;
     logros?: unknown;
   } = {
     nombre: exigirNombre(cuerpo.nombre),
     genero: exigirGenero(cuerpo.genero),
+    descripcion: Object.hasOwn(cuerpo, "descripcion") ? leerDescripcion(cuerpo.descripcion) : "",
     plataforma: exigirPlataforma(cuerpo.plataforma),
     estado: exigirEstado(cuerpo.estado),
   };
@@ -172,6 +183,9 @@ export async function actualizar(id: string, body: unknown) {
   }
   if (Object.hasOwn(datos, "genero")) {
     juego.genero = exigirGenero(datos.genero);
+  }
+  if (Object.hasOwn(datos, "descripcion")) {
+    juego.descripcion = leerDescripcion(datos.descripcion);
   }
   if (Object.hasOwn(datos, "plataforma")) {
     juego.plataforma = exigirPlataforma(datos.plataforma);

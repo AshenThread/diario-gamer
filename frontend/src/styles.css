@@ -15,7 +15,7 @@ body {
   background: #fff;
 }
 
-button, input, select { font: inherit; }
+button, input, select, textarea { font: inherit; }
 button, summary, select { cursor: pointer; }
 
 button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-visible {
@@ -85,7 +85,7 @@ h2 { font-size: clamp(2rem, 4vw, 3.6rem); line-height: .96; }
 .panel-content h2 { font-size: 2rem; margin-bottom: 10px; }
 
 label, legend { display: grid; gap: 8px; font-size: 12px; font-weight: 700; }
-input, select {
+input, select, textarea {
   background: transparent;
   border: 0;
   border-bottom: 1px solid rgba(0, 0, 0, .5);
@@ -94,6 +94,7 @@ input, select {
   min-height: 40px;
   padding: 8px 0;
 }
+textarea { border: 1px solid rgba(0, 0, 0, .5); resize: vertical; }
 input::placeholder { color: rgba(0, 0, 0, .55); }
 select { background: #fff; text-transform: capitalize; }
 .fila { align-items: end; display: grid; gap: 24px; grid-template-columns: 1fr 1fr auto; }
@@ -169,6 +170,7 @@ button:disabled { cursor: wait; opacity: .5; transform: none; }
 .juego-cabecera { align-items: start; display: flex; gap: 16px; justify-content: space-between; }
 .juego-cabecera strong { display: block; font-size: 25px; letter-spacing: -.05em; line-height: 1; }
 .platform { color: rgba(0, 0, 0, .55); display: block; font-family: "Courier New", monospace; font-size: 11px; margin-top: 9px; text-transform: uppercase; }
+.game-description { font-size: 13px; line-height: 1.4; margin: 12px 0 0; }
 .status-control { font-size: 11px; gap: 4px; }
 .achievement-dropdown { border-top: 1px solid rgba(0, 0, 0, .35); padding-top: 14px; }
 .achievement-dropdown summary { font-size: 12px; font-weight: 700; }

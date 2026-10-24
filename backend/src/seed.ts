@@ -6,6 +6,7 @@ const JUEGOS_INICIALES: VideojuegoAtributos[] = [
   {
     nombre: "Hades",
     genero: "Acción y aventura",
+    descripcion: "Una aventura roguelike ambientada en el Inframundo.",
     plataforma: "PC",
     estado: "jugando",
     logros: [
@@ -16,6 +17,7 @@ const JUEGOS_INICIALES: VideojuegoAtributos[] = [
   {
     nombre: "The Legend of Zelda: Tears of the Kingdom",
     genero: "Aventura",
+    descripcion: "Explora Hyrule y descubre sus secretos.",
     plataforma: "Nintendo",
     estado: "jugando",
     logros: [
@@ -25,6 +27,7 @@ const JUEGOS_INICIALES: VideojuegoAtributos[] = [
   {
     nombre: "Red Dead Redemption 2",
     genero: "Acción y aventura",
+    descripcion: "Una historia del oeste sobre una banda de forajidos.",
     plataforma: "PlayStation",
     estado: "pendiente",
     logros: [],
@@ -32,6 +35,7 @@ const JUEGOS_INICIALES: VideojuegoAtributos[] = [
   {
     nombre: "Celeste",
     genero: "Plataformas",
+    descripcion: "Supera una montaña mientras enfrentas tus miedos.",
     plataforma: "PC",
     estado: "completado",
     logros: [

@@ -49,7 +49,8 @@ Un enum es una lista cerrada: el campo solo acepta una de esas opciones. `trim` 
 | Campo | Reglas |
 | --- | --- |
 | nombre | string, obligatorio, trim |
-| genero | string, obligatorio, trim |
+| genero | enum de géneros predefinidos, obligatorio |
+| descripcion | string, opcional; si no se envía se guarda como `""` |
 | plataforma | enum: `PC`, `PlayStation`, `Xbox`, `Nintendo`, `Mobile`. Obligatoria: sin ella el diario no puede decir dónde lo juegas. |
 | estado | enum: `pendiente`, `jugando`, `completado`, `abandonado`. Obligatorio: es la respuesta a qué estás jugando ahora. |
 | logros | arreglo de subdocumentos. Un subdocumento es un objeto con su propia forma, guardado dentro del juego. No es un string suelto. |
