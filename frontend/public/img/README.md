@@ -7,7 +7,6 @@ El nombre del archivo debe ser el nombre del videojuego en minúsculas, sin tild
 con espacios y símbolos reemplazados por guiones. Por ejemplo:
 
 ```text
-The Legend of Zelda: Tears of the Kingdom
 the-legend-of-zelda-tears-of-the-kingdom.png
 ```
 

@@ -461,6 +461,14 @@ export function App() {
         <div>
           <p className="eyebrow">Archivo personal / 2024—25</p>
           <h1>Qué estoy<br /><em>jugando</em></h1>
+          <div className="hero-actions">
+            <a className="hero-link" href="#coleccion">Ver colección <span>↓</span></a>
+            <span className="hero-count">{juegos.length} {juegos.length === 1 ? "juego" : "juegos"} guardados</span>
+          </div>
+        </div>
+        <div className="hero-art" aria-label="Composición gráfica del diario gamer">
+          <img src="/img2/1.svg" alt="" />
+          <span>Registro<br />de partidas</span>
         </div>
         <p className="lead">
           Un registro vivo de partidas, plataformas y logros. Añade una entrada y deja que el
@@ -612,15 +620,11 @@ export function App() {
         </form>
       </details>
 
-      <section className="library">
+      <section className="library" id="coleccion">
         <div className="section-heading">
           <div>
             <p className="eyebrow">02 / Colección</p>
             <h2>En la base <em>diario_gamer</em></h2>
-          </div>
-          <div className="carousel-controls" aria-label="Controles de la colección">
-            <button type="button" className="icon-button" aria-label="Videojuegos anteriores" onClick={() => desplazarBiblioteca(-1)}>←</button>
-            <button type="button" className="icon-button" aria-label="Siguientes videojuegos" onClick={() => desplazarBiblioteca(1)}>→</button>
           </div>
         </div>
         <details className="filters">

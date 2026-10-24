@@ -94,16 +94,6 @@ const JUEGOS_INICIALES: VideojuegoAtributos[] = [
     ],
   },
   {
-    nombre: "The Legend of Zelda: Tears of the Kingdom",
-    genero: "Aventura",
-    descripcion: "Explora Hyrule y descubre sus secretos.",
-    plataforma: "Nintendo",
-    estado: "jugando",
-    logros: [
-      { nombre: "Cielo abierto", descripcion: "Explora una isla celeste.", obtenido: false },
-    ],
-  },
-  {
     nombre: "Celeste",
     genero: "Plataformas",
     descripcion: "Supera una montaña mientras enfrentas tus miedos.",
@@ -126,6 +116,13 @@ async function main(): Promise<void> {
 
   let insertados = 0;
   let existentes = 0;
+
+  const zeldaEliminado = await Videojuego.deleteOne({
+    nombre: "The Legend of Zelda: Tears of the Kingdom",
+  });
+  if (zeldaEliminado.deletedCount > 0) {
+    console.log("Eliminado: The Legend of Zelda: Tears of the Kingdom");
+  }
 
   for (const datos of JUEGOS_INICIALES) {
     const resultado = await Videojuego.updateOne(

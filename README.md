@@ -172,7 +172,7 @@ cd backend
 npm run seed
 ```
 
-El seed añade Hades, Zelda: Tears of the Kingdom, Red Dead Redemption 2 y Celeste con plataformas, estados y algunos logros. Es idempotente: si ya existe la misma combinación de nombre y plataforma, la conserva y no duplica el juego. Los documentos no incluyen imágenes porque el modelo todavía no tiene un campo de imagen; el front deja un espacio cuadrado para incorporarlas después.
+El seed añade Cyberpunk 2077, Red Dead Redemption 2, Hades, Hollow Knight, Hollow Knight: Silksong, Genshin Impact y Celeste con plataformas, estados y logros. También elimina la entrada antigua de The Legend of Zelda: Tears of the Kingdom. Es idempotente: si ya existe la misma combinación de nombre y plataforma, la actualiza sin duplicar el juego.
 
 Si falta `MONGODB_URI`, está vacía o no empieza por `mongodb://` ni `mongodb+srv://`, el proceso termina antes de escuchar.
 
