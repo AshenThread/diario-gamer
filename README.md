@@ -71,6 +71,11 @@ todos los trofeos.
 También permite agregar logros personalizados. Cada hito se puede marcar como
 obtenido desde el formulario o desde la tarjeta del videojuego.
 
+Desde cada tarjeta también se puede presionar **Editar** para cambiar el nombre,
+género, descripción, plataforma o estado. **Guardar cambios** envía un `PATCH`
+al videojuego existente y persiste la modificación en MongoDB; **Cancelar**
+descarta los cambios locales.
+
 Mongoose asigna `_id` al videojuego y a cada logro. Un ObjectId es el identificador de un documento: 24 caracteres hexadecimales (dígitos `0-9` y letras `a-f`). La colección se llama `videojuegos`. El modelo se llama `Videojuego`, que es el nombre que Partida usará en su `ref`.
 
 Al crear, los campos de más se ignoran. El `_id` lo genera MongoDB. Si envías `logros` en un PATCH del juego, ese arreglo sustituye al anterior; para marcar uno solo usa el endpoint del logro.

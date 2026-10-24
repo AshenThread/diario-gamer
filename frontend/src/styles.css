@@ -171,9 +171,16 @@ button:disabled { cursor: wait; opacity: .5; transform: none; }
 .cover-slot img { height: 100%; object-fit: cover; width: 100%; }
 .game-body { display: grid; gap: 20px; padding: 22px; }
 .juego-cabecera { align-items: start; display: flex; gap: 16px; justify-content: space-between; }
+.juego-acciones { display: flex; gap: 6px; }
+.editar { font-size: 11px; padding: 7px 10px; }
 .juego-cabecera strong { display: block; font-size: 25px; letter-spacing: -.05em; line-height: 1; }
 .platform { color: rgba(0, 0, 0, .55); display: block; font-family: "Courier New", monospace; font-size: 11px; margin-top: 9px; text-transform: uppercase; }
 .game-description { font-size: 13px; line-height: 1.4; margin: 12px 0 0; }
+.edicion-juego { display: grid; gap: 12px; }
+.edicion-juego label { font-size: 11px; gap: 4px; }
+.edicion-fila { display: grid; gap: 12px; grid-template-columns: 1fr 1fr; }
+.edicion-acciones { display: flex; gap: 8px; }
+.edicion-acciones button { font-size: 11px; padding: 8px 10px; }
 .status-control { font-size: 11px; gap: 4px; }
 .achievement-dropdown { border-top: 1px solid rgba(0, 0, 0, .35); padding-top: 14px; }
 .achievement-dropdown summary { font-size: 12px; font-weight: 700; }

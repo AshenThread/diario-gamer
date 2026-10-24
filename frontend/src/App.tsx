@@ -1,5 +1,5 @@
 import { FormEvent, useEffect, useRef, useState } from "react";
-import { ErrorHttp, actualizarEstado, crearVideojuego, eliminarVideojuego, listarVideojuegos, marcarLogro } from "./api/videojuegosApi";
+import { ErrorHttp, actualizarEstado, actualizarVideojuego, crearVideojuego, eliminarVideojuego, listarVideojuegos, marcarLogro } from "./api/videojuegosApi";
 import { crearPartida, listarPartidas, obtenerResumen } from "./api/partidasApi";
 import { ESTADOS, GENEROS, PLATAFORMAS, type Estado, type Genero, type LogroFormulario, type Partida, type Plataforma, type Resumen, type Videojuego } from "./tipos";
 
@@ -63,6 +63,12 @@ export function App() {
   const [partidaFecha, setPartidaFecha] = useState(FECHA_HOY);
   const [partidaDuracion, setPartidaDuracion] = useState("60");
   const [partidaAvance, setPartidaAvance] = useState("0");
+  const [editandoId, setEditandoId] = useState<string | null>(null);
+  const [editNombre, setEditNombre] = useState("");
+  const [editGenero, setEditGenero] = useState<Genero | "">("");
+  const [editDescripcion, setEditDescripcion] = useState("");
+  const [editPlataforma, setEditPlataforma] = useState<Plataforma>("PC");
+  const [editEstado, setEditEstado] = useState<Estado>("jugando");
   const bibliotecaRef = useRef<HTMLUListElement>(null);
 
   function desplazarBiblioteca(direccion: number) {
@@ -137,6 +143,45 @@ export function App() {
     setError(null);
     try {
       await actualizarEstado(id, nuevo);
+      await cargar();
+    } catch (err) {
+      setError(textoError(err));
+    }
+
+  }
+
+  function iniciarEdicion(juego: Videojuego) {
+    setEditandoId(juego._id);
+    setEditNombre(juego.nombre);
+    setEditGenero(juego.genero);
+    setEditDescripcion(juego.descripcion);
+    setEditPlataforma(juego.plataforma);
+    setEditEstado(juego.estado);
+    setError(null);
+  }
+
+  async function guardarEdicion(id: string) {
+    const nombreEditado = editNombre.trim();
+    if (!nombreEditado) {
+      setError("El nombre es obligatorio.");
+      return;
+    }
+    if (!editGenero) {
+      setError("El género es obligatorio.");
+      return;
+    }
+    setError(null);
+    setAviso(null);
+    try {
+      await actualizarVideojuego(id, {
+        nombre: nombreEditado,
+        genero: editGenero,
+        descripcion: editDescripcion.trim(),
+        plataforma: editPlataforma,
+        estado: editEstado,
+      });
+      setEditandoId(null);
+      setAviso("Cambios guardados en MongoDB.");
       await cargar();
     } catch (err) {
       setError(textoError(err));
@@ -429,27 +474,63 @@ export function App() {
                 />
               </div>
               <div className="game-body">
-                <div className="juego-cabecera">
-                  <div>
-                    <strong>{juego.nombre}</strong>
-                    <span className="platform">{juego.genero} · {juego.plataforma}</span>
-                    {juego.descripcion ? <p className="game-description">{juego.descripcion}</p> : null}
+                {editandoId === juego._id ? (
+                  <div className="edicion-juego">
+                    <label>
+                      Nombre
+                      <input value={editNombre} onChange={(evento) => setEditNombre(evento.target.value)} />
+                    </label>
+                    <label>
+                      Género
+                      <select value={editGenero} onChange={(evento) => setEditGenero(evento.target.value as Genero)}>
+                        <option value="">Selecciona un género</option>
+                        {GENEROS.map((item) => <option key={item} value={item}>{item}</option>)}
+                      </select>
+                    </label>
+                    <label>
+                      Descripción
+                      <textarea rows={3} value={editDescripcion} onChange={(evento) => setEditDescripcion(evento.target.value)} />
+                    </label>
+                    <div className="edicion-fila">
+                      <label>
+                        Plataforma
+                        <select value={editPlataforma} onChange={(evento) => setEditPlataforma(evento.target.value as Plataforma)}>
+                          {PLATAFORMAS.map((item) => <option key={item} value={item}>{item}</option>)}
+                        </select>
+                      </label>
+                      <label>
+                        Estado
+                        <select value={editEstado} onChange={(evento) => setEditEstado(evento.target.value as Estado)}>
+                          {ESTADOS.map((item) => <option key={item} value={item}>{item}</option>)}
+                        </select>
+                      </label>
+                    </div>
+                    <div className="edicion-acciones">
+                      <button type="button" onClick={() => void guardarEdicion(juego._id)}>Guardar cambios</button>
+                      <button type="button" className="ghost" onClick={() => setEditandoId(null)}>Cancelar</button>
+                    </div>
                   </div>
-                  <button type="button" className="peligro" onClick={() => void borrar(juego._id, juego.nombre)}>
-                    Borrar
-                  </button>
-                </div>
-                <label className="status-control">
-                  Estado
-                  <select
-                    value={juego.estado}
-                    onChange={(evento) => void cambiarEstado(juego._id, evento.target.value as Estado)}
-                  >
-                    {ESTADOS.map((item) => (
-                      <option key={item} value={item}>{item}</option>
-                    ))}
-                  </select>
-                </label>
+                ) : (
+                  <>
+                    <div className="juego-cabecera">
+                      <div>
+                        <strong>{juego.nombre}</strong>
+                        <span className="platform">{juego.genero} · {juego.plataforma}</span>
+                        {juego.descripcion ? <p className="game-description">{juego.descripcion}</p> : null}
+                      </div>
+                      <div className="juego-acciones">
+                        <button type="button" className="ghost editar" onClick={() => iniciarEdicion(juego)}>Editar</button>
+                        <button type="button" className="peligro" onClick={() => void borrar(juego._id, juego.nombre)}>Borrar</button>
+                      </div>
+                    </div>
+                    <label className="status-control">
+                      Estado
+                      <select value={juego.estado} onChange={(evento) => void cambiarEstado(juego._id, evento.target.value as Estado)}>
+                        {ESTADOS.map((item) => <option key={item} value={item}>{item}</option>)}
+                      </select>
+                    </label>
+                  </>
+                )}
                 <details className="achievement-dropdown">
                   <summary>Logros <span>{juego.logros.filter((logro) => logro.obtenido).length}/{juego.logros.length}</span></summary>
                   {juego.logros.length === 0 ? (

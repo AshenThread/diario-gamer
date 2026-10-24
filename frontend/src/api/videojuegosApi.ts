@@ -82,6 +82,21 @@ export async function actualizarEstado(id: string, estado: Estado): Promise<Vide
   return manejar<Videojuego>(respuesta);
 }
 
+export async function actualizarVideojuego(id: string, datos: {
+  nombre: string;
+  genero: Genero;
+  descripcion: string;
+  plataforma: Plataforma;
+  estado: Estado;
+}): Promise<Videojuego> {
+  const respuesta = await fetch(`${BASE}/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(datos),
+  });
+  return manejar<Videojuego>(respuesta);
+}
+
 export async function marcarLogro(
   id: string,
   logroId: string,
