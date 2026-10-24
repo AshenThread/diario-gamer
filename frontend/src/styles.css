@@ -37,10 +37,10 @@ code { font-family: "Courier New", monospace; font-size: .82em; }
   background: var(--game-paper, #fff);
   border-bottom: 1px solid var(--game-ink, #000);
   display: grid;
-  gap: clamp(24px, 4vw, 64px);
-  grid-template-columns: minmax(0, 1.15fr) minmax(190px, .45fr) minmax(190px, .45fr);
-  min-height: 410px;
-  padding: 64px 0 48px;
+  gap: clamp(32px, 5vw, 76px);
+  grid-template-columns: minmax(330px, 1.15fr) minmax(330px, .8fr) minmax(220px, .65fr);
+  min-height: 470px;
+  padding: 70px 0 58px;
   transition: background .55s ease, border-color .55s ease;
 }
 .hero-actions { align-items: center; display: flex; gap: 18px; margin-top: 34px; }
@@ -58,9 +58,9 @@ code { font-family: "Courier New", monospace; font-size: .82em; }
 .hero-link:hover span { transform: translateY(3px); }
 .hero-count { color: rgba(0, 0, 0, .55); font-family: "Courier New", monospace; font-size: 11px; }
 .hero-deck {
-  height: 340px;
+  height: 380px;
   justify-self: center;
-  max-width: 360px;
+  max-width: 460px;
   position: relative;
   width: 100%;
 }
@@ -69,7 +69,7 @@ code { font-family: "Courier New", monospace; font-size: .82em; }
   border: 1px solid var(--game-ink, #000);
   box-shadow: 10px 10px 0 var(--game-accent, #c9a227);
   color: var(--game-contrast, #fff);
-  height: 290px;
+  height: 310px;
   left: 50%;
   overflow: hidden;
   padding: 0;
@@ -77,7 +77,7 @@ code { font-family: "Courier New", monospace; font-size: .82em; }
   top: 4px;
   transform-origin: center bottom;
   transition: opacity .4s ease, transform .5s cubic-bezier(.2,.8,.2,1), visibility .4s ease;
-  width: 205px;
+  width: 220px;
 }
 .hero-card img {
   display: block;
@@ -102,15 +102,15 @@ code { font-family: "Courier New", monospace; font-size: .82em; }
 }
 .hero-card-active { opacity: 1; transform: translateX(-50%) rotate(0deg); z-index: 3; }
 .hero-card-active img { opacity: 1; }
-.hero-card-left { opacity: .65; transform: translateX(-88%) rotate(-9deg) scale(.86); z-index: 2; }
-.hero-card-right { opacity: .65; transform: translateX(-12%) rotate(9deg) scale(.86); z-index: 2; }
+.hero-card-left { opacity: .65; transform: translateX(-118%) rotate(-9deg) scale(.86); z-index: 2; }
+.hero-card-right { opacity: .65; transform: translateX(18%) rotate(9deg) scale(.86); z-index: 2; }
 .hero-card-hidden { opacity: 0; pointer-events: none; transform: translateX(-50%) scale(.7); visibility: hidden; }
 .hero-card:hover img, .hero-card:focus-visible img { opacity: 1; transform: scale(1.04); }
 .hero-deck-controls {
   align-items: center;
   bottom: 0;
   display: flex;
-  gap: 10px;
+  gap: 18px;
   justify-content: center;
   position: absolute;
   width: 100%;
@@ -120,15 +120,16 @@ code { font-family: "Courier New", monospace; font-size: .82em; }
   background: var(--game-ink, #000);
   border-color: var(--game-ink, #000);
   color: var(--game-contrast, #fff);
-  padding: 7px 12px;
+  min-width: 58px;
+  padding: 12px 16px;
 }
-.hero-deck-controls span { color: var(--game-ink, #000); font: 11px "Courier New", monospace; }
+.hero-deck-controls span { color: var(--game-ink, #000); font: 12px "Courier New", monospace; min-width: 42px; text-align: center; }
 .home-page .lead { border-color: var(--game-accent, #000); transition: border-color .55s ease; }
 .home-page .hero-link { border-color: var(--game-ink, #000); color: var(--game-ink, #000); }
 .home-page .hero-link:hover { border-color: var(--game-accent, #000); color: var(--game-ink, #000); }
 .home-page h1 em { color: var(--game-ink, #000); transition: color .55s ease; }
 .hero:focus-visible { outline: 2px solid var(--game-accent, #000); outline-offset: 5px; }
-.hero[tabindex] { cursor: ns-resize; }
+.hero[tabindex] { cursor: default; }
 
 .eyebrow {
   font-size: 11px;
@@ -334,9 +335,11 @@ button:disabled { cursor: wait; opacity: .5; transform: none; }
 
 @media (max-width: 700px) {
   .page { padding-top: 20px; }
-  .hero { grid-template-columns: 1fr; min-height: 430px; padding-top: 80px; }
-  .hero-deck { height: 300px; justify-self: start; max-width: 310px; }
-  .hero-card { height: 250px; width: 175px; }
+  .hero { gap: 42px; grid-template-columns: 1fr; min-height: 790px; padding-top: 80px; }
+  .hero-deck { height: 330px; justify-self: center; max-width: 330px; }
+  .hero-card { height: 270px; width: 190px; }
+  .hero-card-left { transform: translateX(-112%) rotate(-9deg) scale(.86); }
+  .hero-card-right { transform: translateX(12%) rotate(9deg) scale(.86); }
   .lead { margin-top: 20px; }
   .fila, .logro-fila, .logro-acciones, .edicion-fila { grid-template-columns: 1fr; }
   .section-heading { align-items: start; gap: 24px; flex-direction: column; }
