@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useRef, useState } from "react";
+import { CSSProperties, FormEvent, useEffect, useRef, useState } from "react";
 import { ErrorHttp, actualizarEstado, actualizarVideojuego, crearVideojuego, eliminarVideojuego, listarVideojuegos, marcarLogro } from "./api/videojuegosApi";
 import { crearPartida, listarPartidas, obtenerResumen } from "./api/partidasApi";
 import { ESTADOS, GENEROS, PLATAFORMAS, type Estado, type Genero, type LogroFormulario, type Partida, type Plataforma, type Resumen, type Videojuego } from "./tipos";
@@ -29,6 +29,35 @@ function slugPortada(nombre: string): string {
     .replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 }
 
+type GameTheme = {
+  ink: string;
+  accent: string;
+  paper: string;
+  contrast: string;
+};
+
+function temaJuego(nombre: string): GameTheme {
+  const temas: Record<string, GameTheme> = {
+    "cyberpunk-2077": { ink: "#151515", accent: "#f0e900", paper: "#fffde6", contrast: "#131313" },
+    "red-dead-redemption-2": { ink: "#24100e", accent: "#d83b32", paper: "#fff2df", contrast: "#fffaf2" },
+    hades: { ink: "#261115", accent: "#f05a28", paper: "#fff0e6", contrast: "#fffaf5" },
+    celeste: { ink: "#20133a", accent: "#9adcf1", paper: "#f3efff", contrast: "#171225" },
+    "hollow-knight": { ink: "#101a2c", accent: "#46d9ef", paper: "#edf7fb", contrast: "#f8ffff" },
+    "hollow-knight-silksong": { ink: "#32151a", accent: "#eb4a3d", paper: "#fff0e9", contrast: "#fff9f5" },
+    "genshin-impact": { ink: "#10284c", accent: "#8ddcff", paper: "#edf8ff", contrast: "#11233d" },
+  };
+  return temas[slugPortada(nombre)] ?? { ink: "#171717", accent: "#c9a227", paper: "#fbf7ea", contrast: "#171717" };
+}
+
+function estiloTema(tema: GameTheme): CSSProperties {
+  return {
+    "--game-ink": tema.ink,
+    "--game-accent": tema.accent,
+    "--game-paper": tema.paper,
+    "--game-contrast": tema.contrast,
+  } as CSSProperties;
+}
+
 function textoError(error: unknown): string {
   if (error instanceof ErrorHttp) {
     const id = error.requestId ? ` (requestId ${error.requestId})` : "";
@@ -56,6 +85,10 @@ function DetalleJuego({ juego: juegoInicial, onBack, onChanged }: DetalleJuegoPr
   const [fecha, setFecha] = useState(FECHA_HOY);
   const [duracion, setDuracion] = useState("60");
   const [avance, setAvance] = useState("0");
+  const [guardandoPartida, setGuardandoPartida] = useState(false);
+  const tema = temaJuego(juego.nombre);
+  const logrosObtenidos = juego.logros.filter((logro) => logro.obtenido).length;
+  const porcentajeLogros = juego.logros.length ? Math.round((logrosObtenidos / juego.logros.length) * 100) : 0;
 
   async function cargarDetalle() {
     setCargando(true);
@@ -90,6 +123,7 @@ function DetalleJuego({ juego: juegoInicial, onBack, onChanged }: DetalleJuegoPr
 
   async function guardarPartida(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault();
+    setGuardandoPartida(true);
     try {
       await crearPartida({
         videojuego: juego._id,
@@ -100,11 +134,13 @@ function DetalleJuego({ juego: juegoInicial, onBack, onChanged }: DetalleJuegoPr
       await cargarDetalle();
     } catch (err) {
       setError(textoError(err));
+    } finally {
+      setGuardandoPartida(false);
     }
   }
 
   return (
-    <main className="page detail-page">
+    <main className="page detail-page" style={estiloTema(tema)}>
       <button type="button" className="ghost back-button" onClick={onBack}>← Volver a la colección</button>
       <section className="detail-hero">
         <div className="detail-cover cover-slot">
@@ -145,7 +181,13 @@ function DetalleJuego({ juego: juegoInicial, onBack, onChanged }: DetalleJuegoPr
 
       <section className="detail-section">
         <p className="eyebrow">Hitos personales</p>
-        <h2>Logros <em>{juego.logros.filter((logro) => logro.obtenido).length}/{juego.logros.length}</em></h2>
+        <div className="detail-achievement-heading">
+          <h2>Logros <em>{logrosObtenidos}/{juego.logros.length}</em></h2>
+          <span>{porcentajeLogros}% completado</span>
+        </div>
+        <div className="progress-track" aria-label={`${porcentajeLogros}% de logros completados`}>
+          <span style={{ width: `${porcentajeLogros}%` }} />
+        </div>
         <ul className="detail-achievements">
           {juego.logros.map((logro) => (
             <li key={logro._id}>
@@ -165,7 +207,9 @@ function DetalleJuego({ juego: juegoInicial, onBack, onChanged }: DetalleJuegoPr
           <label>Fecha<input type="date" value={fecha} onChange={(evento) => setFecha(evento.target.value)} /></label>
           <label>Minutos<input type="number" min="1" max="1440" value={duracion} onChange={(evento) => setDuracion(evento.target.value)} /></label>
           <label>Avance (%)<input type="number" min="0" max="100" value={avance} onChange={(evento) => setAvance(evento.target.value)} /></label>
-          <button type="submit">Guardar partida</button>
+          <button type="submit" disabled={guardandoPartida}>
+            {guardandoPartida ? "Guardando…" : "Guardar partida"}
+          </button>
         </form>
         <ul className="detail-sessions">
           {partidas.length === 0 ? <li className="muted">Todavía no hay sesiones registradas.</li> : null}
@@ -630,7 +674,7 @@ export function App() {
 
         <ul className="lista" ref={bibliotecaRef}>
           {juegos.map((juego) => (
-            <li key={juego._id}>
+            <li key={juego._id} className="game-card" style={estiloTema(temaJuego(juego.nombre))}>
               <button
                 type="button"
                 className="cover-slot cover-button"
