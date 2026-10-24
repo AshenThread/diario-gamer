@@ -30,15 +30,18 @@ code { font-family: "Courier New", monospace; font-size: .82em; }
   max-width: 1280px;
   padding: 34px clamp(20px, 5vw, 72px) 96px;
 }
+.home-page { background: var(--game-paper, #fff); transition: background .55s ease; }
 
 .hero {
   align-items: end;
-  border-bottom: 1px solid #000;
+  background: var(--game-paper, #fff);
+  border-bottom: 1px solid var(--game-ink, #000);
   display: grid;
   gap: clamp(24px, 4vw, 64px);
   grid-template-columns: minmax(0, 1.15fr) minmax(190px, .45fr) minmax(190px, .45fr);
   min-height: 410px;
   padding: 64px 0 48px;
+  transition: background .55s ease, border-color .55s ease;
 }
 .hero-actions { align-items: center; display: flex; gap: 18px; margin-top: 34px; }
 .hero-link {
@@ -54,47 +57,78 @@ code { font-family: "Courier New", monospace; font-size: .82em; }
 .hero-link:hover { border-color: #c9a227; color: #6d5510; }
 .hero-link:hover span { transform: translateY(3px); }
 .hero-count { color: rgba(0, 0, 0, .55); font-family: "Courier New", monospace; font-size: 11px; }
-.hero-collage {
-  height: 280px;
+.hero-deck {
+  height: 340px;
   justify-self: center;
-  max-width: 330px;
+  max-width: 360px;
   position: relative;
   width: 100%;
 }
-.hero-collage::after {
-  border: 1px solid rgba(0, 0, 0, .7);
-  content: "";
-  inset: 9px 12px 8px 10px;
-  pointer-events: none;
+.hero-card {
+  background: var(--game-ink, #000);
+  border: 1px solid var(--game-ink, #000);
+  box-shadow: 10px 10px 0 var(--game-accent, #c9a227);
+  color: var(--game-contrast, #fff);
+  height: 290px;
+  left: 50%;
+  overflow: hidden;
+  padding: 0;
   position: absolute;
-  transform: rotate(-1deg);
+  top: 4px;
+  transform-origin: center bottom;
+  transition: opacity .4s ease, transform .5s cubic-bezier(.2,.8,.2,1), visibility .4s ease;
+  width: 205px;
 }
-.hero-collage img {
-  border: 1px solid #000;
-  box-shadow: 4px 4px 0 rgba(0, 0, 0, .16);
-  height: 178px;
+.hero-card img {
+  display: block;
+  height: 100%;
   object-fit: cover;
-  position: absolute;
-  transition: transform .45s cubic-bezier(.2,.8,.2,1), z-index 0s;
-  width: 124px;
+  opacity: .88;
+  transition: transform .5s ease, opacity .3s ease;
+  width: 100%;
 }
-.hero-collage .cover-one { left: 7%; top: 8px; transform: rotate(-8deg); }
-.hero-collage .cover-two { left: 27%; top: 40px; transform: rotate(4deg); z-index: 2; }
-.hero-collage .cover-three { right: 4%; top: 4px; transform: rotate(10deg); }
-.hero-collage .cover-four { bottom: 0; left: 17%; transform: rotate(7deg); z-index: 3; }
-.hero-collage .cover-five { bottom: 4px; right: 11%; transform: rotate(-7deg); z-index: 2; }
-.hero-collage img:hover { transform: translateY(-8px) rotate(0deg) scale(1.04); z-index: 5; }
-.hero-collage span {
-  bottom: 24px;
-  color: #000;
+.hero-card span {
+  background: linear-gradient(transparent, rgba(0, 0, 0, .8));
+  bottom: 0;
+  color: #fff;
   font-size: 12px;
   font-weight: 700;
-  left: 16px;
-  line-height: 1.05;
+  left: 0;
+  line-height: 1.15;
+  padding: 34px 14px 14px;
   position: absolute;
-  text-transform: uppercase;
-  z-index: 6;
+  text-align: left;
+  width: 100%;
 }
+.hero-card-active { opacity: 1; transform: translateX(-50%) rotate(0deg); z-index: 3; }
+.hero-card-active img { opacity: 1; }
+.hero-card-left { opacity: .65; transform: translateX(-88%) rotate(-9deg) scale(.86); z-index: 2; }
+.hero-card-right { opacity: .65; transform: translateX(-12%) rotate(9deg) scale(.86); z-index: 2; }
+.hero-card-hidden { opacity: 0; pointer-events: none; transform: translateX(-50%) scale(.7); visibility: hidden; }
+.hero-card:hover img, .hero-card:focus-visible img { opacity: 1; transform: scale(1.04); }
+.hero-deck-controls {
+  align-items: center;
+  bottom: 0;
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  position: absolute;
+  width: 100%;
+  z-index: 5;
+}
+.hero-deck-controls button {
+  background: var(--game-ink, #000);
+  border-color: var(--game-ink, #000);
+  color: var(--game-contrast, #fff);
+  padding: 7px 12px;
+}
+.hero-deck-controls span { color: var(--game-ink, #000); font: 11px "Courier New", monospace; }
+.home-page .lead { border-color: var(--game-accent, #000); transition: border-color .55s ease; }
+.home-page .hero-link { border-color: var(--game-ink, #000); color: var(--game-ink, #000); }
+.home-page .hero-link:hover { border-color: var(--game-accent, #000); color: var(--game-ink, #000); }
+.home-page h1 em { color: var(--game-ink, #000); transition: color .55s ease; }
+.hero:focus-visible { outline: 2px solid var(--game-accent, #000); outline-offset: 5px; }
+.hero[tabindex] { cursor: ns-resize; }
 
 .eyebrow {
   font-size: 11px;
@@ -301,8 +335,8 @@ button:disabled { cursor: wait; opacity: .5; transform: none; }
 @media (max-width: 700px) {
   .page { padding-top: 20px; }
   .hero { grid-template-columns: 1fr; min-height: 430px; padding-top: 80px; }
-  .hero-collage { height: 250px; justify-self: start; max-width: 300px; }
-  .hero-collage img { height: 160px; width: 110px; }
+  .hero-deck { height: 300px; justify-self: start; max-width: 310px; }
+  .hero-card { height: 250px; width: 175px; }
   .lead { margin-top: 20px; }
   .fila, .logro-fila, .logro-acciones, .edicion-fila { grid-template-columns: 1fr; }
   .section-heading { align-items: start; gap: 24px; flex-direction: column; }

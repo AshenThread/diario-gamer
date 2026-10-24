@@ -476,7 +476,6 @@ export function App() {
         className="hero"
         onWheel={(evento) => {
           if (Math.abs(evento.deltaY) < 8) return;
-          evento.preventDefault();
           cambiarHero(evento.deltaY > 0 ? 1 : -1);
         }}
         onKeyDown={(evento) => {
