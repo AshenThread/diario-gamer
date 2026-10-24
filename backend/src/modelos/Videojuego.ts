@@ -73,7 +73,7 @@ const videojuegoSchema = new Schema<VideojuegoAtributos>(
       required: [true, "El género es obligatorio"],
       enum: {
         values: [...GENEROS],
-        message: "El género «{VALUE}» no es válido",
+        message: `El género «{VALUE}» no es válido. Usa uno de: ${GENEROS.join(", ")}`,
       },
     },
     descripcion: {

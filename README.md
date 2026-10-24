@@ -239,7 +239,7 @@ Un endpoint es una ruta concreta: método más URL. La lista responde un arreglo
 | GET | `/api/videojuegos` | Lista. Filtros opcionales `?estado=` y `?plataforma=`. |
 | GET | `/api/videojuegos/:id` | Devuelve un videojuego. |
 | POST | `/api/videojuegos` | Crea el videojuego. |
-| PATCH | `/api/videojuegos/:id` | Cambia solo `nombre`, `plataforma`, `estado` o `logros`, los que vengan en el cuerpo. |
+| PATCH | `/api/videojuegos/:id` | Cambia solo `nombre`, `genero`, `descripcion`, `plataforma`, `estado` o `logros`, los que vengan en el cuerpo. |
 | DELETE | `/api/videojuegos/:id` | Borra. Status 204. |
 | PATCH | `/api/videojuegos/:id/logros/:logroId` | Cuerpo `{ "obtenido": true }` o `{ "obtenido": false }`. Devuelve el videojuego. |
 
@@ -249,7 +249,9 @@ Un middleware es una función que ve la petición, en orden, alrededor de la rut
 
 1. `requestId` crea un identificador único de esa petición y lo devuelve en la cabecera `X-Request-Id`. Una cabecera es un dato que viaja junto a la respuesta, aparte del JSON.
 2. `logger` escribe en consola método, URL, status y milisegundos cuando la respuesta termina.
-3. `errorHandler` va al final y deja el fallo en uno de estos cuatro:
+3. `errorHandler` va al final y deja el fallo en uno de estos cuatro. Las validaciones
+   de Mongoose se normalizan, incluyendo las del `enum` de género, y se devuelven
+   como `VALIDACION` con el campo y el motivo en `detalles`.
 
 | Situación | Status | codigo |
 | --- | --- | --- |

@@ -9,7 +9,7 @@ export class ErrorHttp extends Error {
   readonly status: number;
 
   constructor(status: number, cuerpo: ErrorApi) {
-    const detalle = cuerpo.detalles?.join(". ");
+    const detalle = cuerpo.detalles?.filter(Boolean).join(". ");
     super(detalle ? `${cuerpo.error ?? "Error"}: ${detalle}` : (cuerpo.error ?? `Error HTTP ${status}`));
     this.status = status;
     this.codigo = cuerpo.codigo;

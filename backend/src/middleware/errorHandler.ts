@@ -40,6 +40,32 @@ function esCuerpoJsonInvalido(err: unknown): boolean {
   return err instanceof SyntaxError && candidato.status === 400;
 }
 
+function esValidacionMongoose(err: unknown): err is {
+  name: string;
+  errors: Record<string, { message?: string }>;
+} {
+  if (err instanceof mongoose.Error.ValidationError) {
+    return true;
+  }
+  if (typeof err !== "object" || err === null) {
+    return false;
+  }
+  const candidato = err as {
+    name?: string;
+    errors?: Record<string, { message?: string }>;
+  };
+  return candidato.name === "ValidationError" && typeof candidato.errors === "object";
+}
+
+function detallesValidacionMongoose(err: {
+  errors: Record<string, { message?: string }>;
+}): string[] {
+  return Object.entries(err.errors).map(([campo, detalle]) => {
+    const mensaje = detalle.message ?? "Valor no válido";
+    return `${campo}: ${mensaje}`;
+  });
+}
+
 export const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
   if (res.headersSent) {
     next(err);
@@ -48,8 +74,8 @@ export const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
 
   const requestId = req.requestId || "desconocido";
 
-  if (err instanceof mongoose.Error.ValidationError) {
-    const detalles = Object.values(err.errors).map((item) => item.message);
+  if (esValidacionMongoose(err)) {
+    const detalles = detallesValidacionMongoose(err);
     enviarError(res, 400, CODIGOS.VALIDACION, "Validación de esquema", requestId, detalles);
     return;
   }
