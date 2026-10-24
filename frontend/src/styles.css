@@ -52,8 +52,11 @@ code { font-family: "Courier New", monospace; font-size: .82em; }
 }
 .home-page {
   background:
+    radial-gradient(circle at 8% 8%, color-mix(in srgb, var(--game-accent, #c9a227) 24%, transparent), transparent 32%),
+    radial-gradient(circle at 92% 14%, color-mix(in srgb, var(--game-ink, #000) 12%, transparent), transparent 35%),
+    radial-gradient(circle at 20% 78%, color-mix(in srgb, var(--game-accent, #c9a227) 15%, var(--game-paper, #fff)), transparent 40%),
+    radial-gradient(circle at 78% 84%, color-mix(in srgb, var(--game-ink, #000) 10%, var(--game-paper, #fff)), transparent 42%),
     radial-gradient(circle at 18% 24%, color-mix(in srgb, var(--game-paper, #fff) 86%, #fff 14%), transparent 43%),
-    radial-gradient(circle at 82% 78%, color-mix(in srgb, var(--game-paper, #fff) 90%, var(--game-accent, #c9a227) 10%), transparent 48%),
     var(--game-paper, #fff);
   min-height: 100vh;
   position: relative;
@@ -65,12 +68,29 @@ code { font-family: "Courier New", monospace; font-size: .82em; }
 }
 .home-page::before {
   background:
-    radial-gradient(circle at 70% 10%, color-mix(in srgb, var(--game-accent, #c9a227) 18%, transparent), transparent 35%);
+    radial-gradient(ellipse at 70% 10%, color-mix(in srgb, var(--game-accent, #c9a227) 22%, transparent), transparent 35%),
+    radial-gradient(ellipse at 44% 62%, color-mix(in srgb, var(--game-ink, #000) 13%, transparent), transparent 38%);
   content: "";
   inset: 0;
   position: fixed;
   z-index: -1;
   animation: theme-drift 18s ease-in-out infinite alternate;
+}
+.home-page::after {
+  background: conic-gradient(
+    from 130deg at 62% 48%,
+    color-mix(in srgb, var(--game-accent, #c9a227) 14%, transparent),
+    transparent 26%,
+    color-mix(in srgb, var(--game-ink, #000) 9%, transparent) 52%,
+    transparent 78%
+  );
+  content: "";
+  inset: -18%;
+  opacity: .7;
+  pointer-events: none;
+  position: fixed;
+  z-index: -1;
+  animation: theme-drift 26s ease-in-out infinite alternate-reverse;
 }
 
 .hero {
@@ -187,10 +207,10 @@ code { font-family: "Courier New", monospace; font-size: .82em; }
   text-align: left;
   width: 100%;
 }
-.hero-card-active { --hero-card-transform: translateX(-50%) rotate(0deg); opacity: 1; transform: var(--hero-card-transform); z-index: 3; }
+.hero-card-active { --hero-card-transform: translateX(-50%) rotate(0deg); opacity: 1; transform: var(--hero-card-transform); z-index: 5; }
 .hero-card-active img { opacity: 1; }
-.hero-card-left { --hero-card-transform: translateX(-100%) rotate(-7deg) scale(.86); opacity: .65; transform: var(--hero-card-transform); z-index: 2; }
-.hero-card-right { --hero-card-transform: translateX(0) rotate(7deg) scale(.86); opacity: .65; transform: var(--hero-card-transform); z-index: 2; }
+.hero-card-left { --hero-card-transform: translateX(-100%) rotate(-7deg) scale(.86); opacity: .65; transform: var(--hero-card-transform); z-index: 4; }
+.hero-card-right { --hero-card-transform: translateX(0) rotate(7deg) scale(.86); opacity: .65; transform: var(--hero-card-transform); z-index: 4; }
 .hero-card-hidden { --hero-card-transform: translateX(-50%) scale(.7); opacity: 0; pointer-events: none; transform: var(--hero-card-transform); visibility: hidden; }
 .hero-card:hover, .hero-card:focus-visible {
   transform: var(--hero-card-transform) scale(1.045);
@@ -201,6 +221,7 @@ code { font-family: "Courier New", monospace; font-size: .82em; }
 .hero-deck:has(.hero-card-right:hover) .hero-card-active {
   opacity: .16;
   transform: translateX(-50%) rotate(0deg) scale(.76);
+  z-index: 6;
 }
 .hero-deck:has(.hero-card-left:hover) .hero-card-left,
 .hero-deck:has(.hero-card-right:hover) .hero-card-right {
@@ -211,6 +232,7 @@ code { font-family: "Courier New", monospace; font-size: .82em; }
 .hero-deck:has(.hero-card-right:hover) .hero-card-left {
   opacity: .3;
   transform: var(--hero-card-transform) scale(.72);
+  z-index: 5;
 }
 .hero-deck-controls {
   align-items: center;
