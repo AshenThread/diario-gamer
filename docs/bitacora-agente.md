@@ -46,3 +46,11 @@
 
 **Pedido:** auditoría, deploy, PR.  
 **Resultado:** `docs/AUDITORIA.md` con filas por criterio; PR a `main` listando tickets T-01…T-10.
+
+## 9. Desviación de la spec (y cómo se detectó)
+
+**Qué pasó:** en `progresoServicio` se pasó `meta.hitos` (subdocumentos de Mongoose) directo a `evaluarHitos`, que hace `...h`. La respuesta de `GET .../progreso-semanal` dejó de cumplir el contrato del PRD/spec (hitos con `descripcion`, `porcentajeObjetivo`, `alcanzado`) y filtró internos (`__parentArray`, `$__parent`, `_doc`).
+
+**Cómo lo detecté:** al auditar las URLs públicas de Render, el JSON de progreso de Hades mostraba esos campos en lugar del arreglo limpio. La UI de «Esta semana» no podía mostrar bien las descripciones de hitos.
+
+**Corrección:** mapear a objetos planos antes de `evaluarHitos` y dejar constancia en esta bitácora; el dominio puro no debe recibir documentos de ORM.

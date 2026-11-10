@@ -198,12 +198,57 @@ cd ../backend && npm test && npm run typecheck && npm run build
 
 Documentación SDD de E2: [`docs/`](./docs/) (diagnóstico, PRD, backlog, specs, [AUDITORIA](./docs/AUDITORIA.md)).
 
+## Cómo trabajamos con el agente
+
+El Proyecto 4 se construyó con un agente de IA dentro de un harness SDD. La
+cadena seguida fue:
+
+```text
+diagnóstico → harness → PRD → épica → historias → criterios → tickets → specs → código + tests → auditoría → demo
+```
+
+### Harness
+
+| Pieza | Dónde |
+| --- | --- |
+| Prompt / reglas del repo | [`AGENTS.md`](./AGENTS.md), [`CLAUDE.md`](./CLAUDE.md) |
+| Identidad visual | [`DESIGN.md`](./DESIGN.md) |
+| Skills | [`.agents/skills/frontend-design/`](./.agents/skills/frontend-design/), [`.claude/skills/`](./.claude/skills/) |
+| Hooks | [`.cursor/hooks.json`](./.cursor/hooks.json), [`.claude/settings.json`](./.claude/settings.json) |
+| Instrucciones Copilot (legado P3) | [`.github/copilot-instructions.md`](./.github/copilot-instructions.md) |
+
+Reglas clave del harness: no tocar `.env` (solo `.env.example`), no código sin
+spec en `docs/specs/`, tests de dominio verdes antes de cerrar un ticket, zona
+`America/Guayaquil` para semana y rachas.
+
+### Flujo seguido
+
+1. Diagnóstico del Proyecto 3 y deuda D1/D3 → [`docs/diagnostico.md`](./docs/diagnostico.md)
+2. Harness (AGENTS, skills, hooks, DESIGN)
+3. PRD de producto sin detalle técnico → [`docs/prd/prd-e2-metas-y-rachas.md`](./docs/prd/prd-e2-metas-y-rachas.md)
+4. Épicas e historias → [`docs/backlog/epicas.md`](./docs/backlog/epicas.md), [`docs/backlog/E2-metas-y-rachas.md`](./docs/backlog/E2-metas-y-rachas.md)
+5. Specs backend/frontend **antes** del código → [`docs/specs/`](./docs/specs/)
+6. Dominio puro + Vitest, luego Meta CRUD, progreso-semanal, UI en la ficha
+7. Auditoría criterio a criterio → [`docs/AUDITORIA.md`](./docs/AUDITORIA.md)
+8. Bitácora del agente (aciertos, fricciones, una desviación de spec) → [`docs/bitacora-agente.md`](./docs/bitacora-agente.md)
+
+En Git, cada spec se commitó antes que su implementación (`docs(specs)` →
+`feat(E2): T-03` → API → UI). La épica entró a `main` por
+[PR #9](https://github.com/AshenThread/diario-gamer/pull/9) y
+[PR #10](https://github.com/AshenThread/diario-gamer/pull/10).
+
+### Demo (fase 10)
+
+En la URL pública: crear meta con hitos → registrar partidas → ver progreso y
+racha → alcanzar un hito → provocar 409 de meta duplicada → trazar un criterio
+PRD → historia → ticket → spec → test → código → auditoría.
+
 ## Despliegue público
 
 El despliegue activo en Render está disponible en:
 
-- Frontend: [https://diario-gamer-web-55fd.onrender.com/#](https://diario-gamer-web-55fd.onrender.com/#)
-- Backend: <https://diario-gamer-api-3lsk.onrender.com/>
+- Frontend: [https://diario-gamer-web-55fd.onrender.com/](https://diario-gamer-web-55fd.onrender.com/)
+- Backend / API: [https://diario-gamer-api-3lsk.onrender.com](https://diario-gamer-api-3lsk.onrender.com)
 
 El frontend público consume la API pública mediante `VITE_API_URL`. El backend
 usa `CORS_ORIGIN` con el origen del Static Site. Las credenciales de MongoDB y
@@ -230,7 +275,8 @@ Se aplican a títulos y cartas; el texto de lectura mantiene una fuente general.
 
 La configuración de agentes, skills, prompt base y criterios de colaboración
 está en
-[`/.github/copilot-instructions.md`](./.github/copilot-instructions.md).
+[`/.github/copilot-instructions.md`](./.github/copilot-instructions.md)
+y se complementa con el harness de la sección anterior.
 
 El proyecto fue dirigido por su propietario: definió la intención, los modelos,
 la experiencia, la estética, las iteraciones y las conexiones entre frontend,
@@ -244,6 +290,8 @@ propietario, y 10% sugerencias asistidas por IA.
 El repositorio conserva ramas de trabajo y pull requests integrados, entre
 ellos:
 
+- [PR #9 — feat(E2): Metas y rachas](https://github.com/AshenThread/diario-gamer/pull/9)
+- [PR #10 — Feature/e2 metas rachas (harness Cursor)](https://github.com/AshenThread/diario-gamer/pull/10)
 - [PR #1 — entrega final del diario gamer](https://github.com/AshenThread/diario-gamer/pull/1)
 - [PR #5 — tipografías temáticas](https://github.com/AshenThread/diario-gamer/pull/5)
 - [PR #7 — glitch de código y copy personal](https://github.com/AshenThread/diario-gamer/pull/7)

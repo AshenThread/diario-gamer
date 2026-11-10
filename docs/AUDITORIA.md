@@ -57,3 +57,7 @@ Specs: [backend-meta-progreso.md](./specs/backend-meta-progreso.md), [frontend-m
 
 - **D1:** cascade al eliminar videojuego.
 - **D3:** eliminar partida en ficha + refresh.
+
+## Corrección post-auditoría
+
+- **Hitos en JSON de progreso:** al desplegar, `evaluarHitos` recibía subdocumentos de Mongoose y la API filtraba internos. Se mapean a objetos planos en `progresoServicio` (ver bitácora §9).
