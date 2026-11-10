@@ -41,6 +41,11 @@ export async function progresoSemanal(videojuegoId: string) {
   }));
   const horas = horasSemana(entradas, semana);
   const horasMeta = meta ? meta.horasSemanales : null;
+  // Plain objects only: spreading Mongoose subdocs leaks internals into JSON.
+  const hitosPlanos = (meta?.hitos ?? []).map((h) => ({
+    descripcion: h.descripcion,
+    porcentajeObjetivo: h.porcentajeObjetivo,
+  }));
 
   return {
     semana,
@@ -55,6 +60,6 @@ export async function progresoSemanal(videojuegoId: string) {
     diasJugadosSemana: diasJugadosSemana(entradas, semana),
     rachaActual: rachaActual(entradas, ahora),
     mejorRacha: mejorRacha(entradas),
-    hitos: evaluarHitos(meta?.hitos ?? [], resumenJuego.avanceActual),
+    hitos: evaluarHitos(hitosPlanos, resumenJuego.avanceActual),
   };
 }
