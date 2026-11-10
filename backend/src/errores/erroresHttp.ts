@@ -2,6 +2,7 @@ export const CODIGOS = {
   VALIDACION: "VALIDACION",
   ID_INVALIDO: "ID_INVALIDO",
   NO_ENCONTRADO: "NO_ENCONTRADO",
+  CONFLICTO: "CONFLICTO",
   INESPERADO: "INESPERADO",
 } as const;
 
@@ -32,6 +33,15 @@ export class ErrorNoEncontrado extends Error {
   constructor(mensaje: string) {
     super(mensaje);
     this.name = "ErrorNoEncontrado";
+    Object.setPrototypeOf(this, new.target.prototype);
+  }
+}
+
+export class ErrorConflicto extends Error {
+  readonly codigo = CODIGOS.CONFLICTO;
+  constructor(mensaje: string) {
+    super(mensaje);
+    this.name = "ErrorConflicto";
     Object.setPrototypeOf(this, new.target.prototype);
   }
 }
