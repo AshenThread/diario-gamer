@@ -198,12 +198,11 @@ cd ../backend && npm test && npm run typecheck && npm run build
 
 Documentación SDD de E2: [`docs/`](./docs/) (diagnóstico, PRD, backlog, specs, [AUDITORIA](./docs/AUDITORIA.md)).
 
-
 ## Despliegue público
 
 El despliegue activo en Render está disponible en:
 
-- Frontend: <https://diario-gamer-web-55fd.onrender.com/>
+- Frontend: [https://diario-gamer-web-55fd.onrender.com/#](https://diario-gamer-web-55fd.onrender.com/#)
 - Backend: <https://diario-gamer-api-3lsk.onrender.com/>
 
 El frontend público consume la API pública mediante `VITE_API_URL`. El backend
