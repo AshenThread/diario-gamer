@@ -129,6 +129,17 @@ resumen, por lo que los datos se actualizan inmediatamente.
 | DELETE | `/api/partidas/:id` | Elimina una sesión |
 | GET | `/api/videojuegos/:id/partidas` | Lista sesiones de un juego |
 | GET | `/api/videojuegos/:id/resumen` | Devuelve el resumen calculado |
+| GET | `/api/videojuegos/:id/progreso-semanal` | Progreso semanal, rachas e hitos |
+| GET | `/api/videojuegos/:id/metas` | Lista metas del videojuego |
+
+### Metas (E2)
+
+| Método | Ruta | Función |
+| --- | --- | --- |
+| POST | `/api/metas` | Crea una meta (409 si ya hay una activa) |
+| GET | `/api/metas/:id` | Obtiene una meta |
+| PATCH | `/api/metas/:id` | Actualiza meta / hitos / activa |
+| POST | `/api/metas/:id/desactivar` | Desactiva la meta |
 
 ### Errores
 
@@ -139,6 +150,7 @@ El middleware central diferencia:
 | Cuerpo, filtro o esquema inválido | 400 | `VALIDACION` |
 | ObjectId inválido o `CastError` | 400 | `ID_INVALIDO` |
 | Documento, logro o ruta inexistente | 404 | `NO_ENCONTRADO` |
+| Conflicto de negocio (p. ej. meta activa duplicada) | 409 | `CONFLICTO` |
 | Error no previsto | 500 | `INESPERADO` |
 
 Cada respuesta de error incluye `requestId`; los detalles de validación se
@@ -181,8 +193,11 @@ Validación de compilación:
 
 ```bash
 cd frontend && npm run build
-cd ../backend && npm run typecheck && npm run build
+cd ../backend && npm test && npm run typecheck && npm run build
 ```
+
+Documentación SDD de E2: [`docs/`](./docs/) (diagnóstico, PRD, backlog, specs, [AUDITORIA](./docs/AUDITORIA.md)).
+
 
 ## Despliegue público
 

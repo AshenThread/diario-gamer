@@ -2,6 +2,7 @@ import { ErrorRequestHandler, Response } from "express";
 import mongoose from "mongoose";
 import {
   CODIGOS,
+  ErrorConflicto,
   ErrorIdInvalido,
   ErrorNoEncontrado,
   ErrorValidacion,
@@ -14,7 +15,7 @@ export function enviarError(
   codigo: CodigoError,
   error: string,
   requestId: string,
-  detalles?: string[]
+  detalles?: string[],
 ): void {
   const cuerpo: {
     codigo: CodigoError;
@@ -54,7 +55,9 @@ function esValidacionMongoose(err: unknown): err is {
     name?: string;
     errors?: Record<string, { message?: string }>;
   };
-  return candidato.name === "ValidationError" && typeof candidato.errors === "object";
+  return (
+    candidato.name === "ValidationError" && typeof candidato.errors === "object"
+  );
 }
 
 function detallesValidacionMongoose(err: {
@@ -76,17 +79,38 @@ export const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
 
   if (esValidacionMongoose(err)) {
     const detalles = detallesValidacionMongoose(err);
-    enviarError(res, 400, CODIGOS.VALIDACION, "Validación de esquema", requestId, detalles);
+    enviarError(
+      res,
+      400,
+      CODIGOS.VALIDACION,
+      "Validación de esquema",
+      requestId,
+      detalles,
+    );
     return;
   }
 
   if (err instanceof ErrorValidacion) {
-    enviarError(res, 400, CODIGOS.VALIDACION, "Validación de esquema", requestId, [err.message]);
+    enviarError(
+      res,
+      400,
+      CODIGOS.VALIDACION,
+      "Validación de esquema",
+      requestId,
+      [err.message],
+    );
     return;
   }
 
   if (err instanceof ErrorIdInvalido) {
-    enviarError(res, 400, CODIGOS.ID_INVALIDO, "Id mal formado", requestId, err.detalles);
+    enviarError(
+      res,
+      400,
+      CODIGOS.ID_INVALIDO,
+      "Id mal formado",
+      requestId,
+      err.detalles,
+    );
     return;
   }
 
@@ -95,7 +119,14 @@ export const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
       enviarError(res, 400, CODIGOS.ID_INVALIDO, "Id mal formado", requestId);
       return;
     }
-    enviarError(res, 400, CODIGOS.VALIDACION, "Validación de esquema", requestId, [err.message]);
+    enviarError(
+      res,
+      400,
+      CODIGOS.VALIDACION,
+      "Validación de esquema",
+      requestId,
+      [err.message],
+    );
     return;
   }
 
@@ -104,10 +135,20 @@ export const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
     return;
   }
 
+  if (err instanceof ErrorConflicto) {
+    enviarError(res, 409, CODIGOS.CONFLICTO, err.message, requestId);
+    return;
+  }
+
   if (esCuerpoJsonInvalido(err)) {
-    enviarError(res, 400, CODIGOS.VALIDACION, "Validación de esquema", requestId, [
-      "El cuerpo no es JSON válido",
-    ]);
+    enviarError(
+      res,
+      400,
+      CODIGOS.VALIDACION,
+      "Validación de esquema",
+      requestId,
+      ["El cuerpo no es JSON válido"],
+    );
     return;
   }
 

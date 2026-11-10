@@ -1,0 +1,26 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 -c \"import json,sys; d=json.load(sys.stdin); p=d.get('tool_input',{}).get('file_path','') or d.get('tool_input',{}).get('path',''); sys.exit(2 if p.endswith('.env') or '/.env' in p.replace('\\\\\\\\','/') else 0)\""
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "npx --yes prettier --write \"$CLAUDE_FILE\" 2>/dev/null || true"
+          }
+        ]
+      }
+    ]
+  }
+}

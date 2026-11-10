@@ -1,5 +1,9 @@
 import { Types } from "mongoose";
-import { ErrorIdInvalido, ErrorNoEncontrado, ErrorValidacion } from "../errores/erroresHttp";
+import {
+  ErrorIdInvalido,
+  ErrorNoEncontrado,
+  ErrorValidacion,
+} from "../errores/erroresHttp";
 import {
   ESTADOS,
   GENEROS,
@@ -9,8 +13,17 @@ import {
   type Genero,
   type Plataforma,
 } from "../modelos/Videojuego";
+import { Partida } from "../modelos/Partida";
+import { Meta } from "../modelos/Meta";
 
-const CAMPOS_ACTUALIZABLES = ["nombre", "genero", "descripcion", "plataforma", "estado", "logros"] as const;
+const CAMPOS_ACTUALIZABLES = [
+  "nombre",
+  "genero",
+  "descripcion",
+  "plataforma",
+  "estado",
+  "logros",
+] as const;
 type CampoActualizable = (typeof CAMPOS_ACTUALIZABLES)[number];
 
 export interface FiltroListado {
@@ -44,8 +57,13 @@ function exigirNombre(valor: unknown): string {
 }
 
 function exigirGenero(valor: unknown): Genero {
-  if (typeof valor !== "string" || !(GENEROS as readonly string[]).includes(valor)) {
-    throw new ErrorValidacion(`El género debe ser uno de: ${GENEROS.join(", ")}`);
+  if (
+    typeof valor !== "string" ||
+    !(GENEROS as readonly string[]).includes(valor)
+  ) {
+    throw new ErrorValidacion(
+      `El género debe ser uno de: ${GENEROS.join(", ")}`,
+    );
   }
   return valor as Genero;
 }
@@ -58,15 +76,25 @@ function leerDescripcion(valor: unknown): string {
 }
 
 function exigirPlataforma(valor: unknown): Plataforma {
-  if (typeof valor !== "string" || !(PLATAFORMAS as readonly string[]).includes(valor)) {
-    throw new ErrorValidacion("La plataforma debe ser PC, PlayStation, Xbox, Nintendo o Mobile");
+  if (
+    typeof valor !== "string" ||
+    !(PLATAFORMAS as readonly string[]).includes(valor)
+  ) {
+    throw new ErrorValidacion(
+      "La plataforma debe ser PC, PlayStation, Xbox, Nintendo o Mobile",
+    );
   }
   return valor as Plataforma;
 }
 
 function exigirEstado(valor: unknown): Estado {
-  if (typeof valor !== "string" || !(ESTADOS as readonly string[]).includes(valor)) {
-    throw new ErrorValidacion("El estado debe ser pendiente, jugando, completado o abandonado");
+  if (
+    typeof valor !== "string" ||
+    !(ESTADOS as readonly string[]).includes(valor)
+  ) {
+    throw new ErrorValidacion(
+      "El estado debe ser pendiente, jugando, completado o abandonado",
+    );
   }
   return valor as Estado;
 }
@@ -74,7 +102,7 @@ function exigirEstado(valor: unknown): Estado {
 function leerFiltro<T extends string>(
   valor: unknown,
   permitidos: readonly T[],
-  campo: string
+  campo: string,
 ): T | undefined {
   if (valor === undefined) {
     return undefined;
@@ -82,8 +110,13 @@ function leerFiltro<T extends string>(
   if (Array.isArray(valor)) {
     throw new ErrorValidacion(`${campo} admite un solo valor`);
   }
-  if (typeof valor !== "string" || !(permitidos as readonly string[]).includes(valor)) {
-    throw new ErrorValidacion(`${campo} debe ser uno de: ${permitidos.join(", ")}`);
+  if (
+    typeof valor !== "string" ||
+    !(permitidos as readonly string[]).includes(valor)
+  ) {
+    throw new ErrorValidacion(
+      `${campo} debe ser uno de: ${permitidos.join(", ")}`,
+    );
   }
   return valor as T;
 }
@@ -97,19 +130,31 @@ function revisarLogros(valor: unknown): void {
       throw new ErrorValidacion("Cada logro debe ser un objeto");
     }
     const logro = item as Record<string, unknown>;
-    if (!Object.hasOwn(logro, "nombre") || typeof logro.nombre !== "string" || logro.nombre.trim() === "") {
+    if (
+      !Object.hasOwn(logro, "nombre") ||
+      typeof logro.nombre !== "string" ||
+      logro.nombre.trim() === ""
+    ) {
       throw new ErrorValidacion("El nombre del logro es obligatorio");
     }
-    if (Object.hasOwn(logro, "descripcion") && typeof logro.descripcion !== "string") {
+    if (
+      Object.hasOwn(logro, "descripcion") &&
+      typeof logro.descripcion !== "string"
+    ) {
       throw new ErrorValidacion("descripcion debe ser texto");
     }
-    if (Object.hasOwn(logro, "obtenido") && typeof logro.obtenido !== "boolean") {
+    if (
+      Object.hasOwn(logro, "obtenido") &&
+      typeof logro.obtenido !== "boolean"
+    ) {
       throw new ErrorValidacion("obtenido debe ser true o false");
     }
   }
 }
 
-function camposPresentes(body: unknown): Partial<Record<CampoActualizable, unknown>> {
+function camposPresentes(
+  body: unknown,
+): Partial<Record<CampoActualizable, unknown>> {
   const cuerpo = leerObjeto(body);
   const datos: Partial<Record<CampoActualizable, unknown>> = {};
   for (const campo of CAMPOS_ACTUALIZABLES) {
@@ -118,7 +163,9 @@ function camposPresentes(body: unknown): Partial<Record<CampoActualizable, unkno
     }
   }
   if (Object.keys(datos).length === 0) {
-    throw new ErrorValidacion("Envía al menos un campo: nombre, género, descripción, plataforma, estado o logros");
+    throw new ErrorValidacion(
+      "Envía al menos un campo: nombre, género, descripción, plataforma, estado o logros",
+    );
   }
   return datos;
 }
@@ -138,7 +185,10 @@ export async function listar(filtro: FiltroListado) {
 }
 
 export async function obtenerPorId(id: string) {
-  exigirObjectId(id, "El id del videojuego debe tener 24 caracteres hexadecimales");
+  exigirObjectId(
+    id,
+    "El id del videojuego debe tener 24 caracteres hexadecimales",
+  );
   const juego = await Videojuego.findById(id);
   if (!juego) {
     throw new ErrorNoEncontrado("Videojuego no encontrado");
@@ -158,7 +208,9 @@ export async function crear(body: unknown) {
   } = {
     nombre: exigirNombre(cuerpo.nombre),
     genero: exigirGenero(cuerpo.genero),
-    descripcion: Object.hasOwn(cuerpo, "descripcion") ? leerDescripcion(cuerpo.descripcion) : "",
+    descripcion: Object.hasOwn(cuerpo, "descripcion")
+      ? leerDescripcion(cuerpo.descripcion)
+      : "",
     plataforma: exigirPlataforma(cuerpo.plataforma),
     estado: exigirEstado(cuerpo.estado),
   };
@@ -172,7 +224,10 @@ export async function crear(body: unknown) {
 }
 
 export async function actualizar(id: string, body: unknown) {
-  exigirObjectId(id, "El id del videojuego debe tener 24 caracteres hexadecimales");
+  exigirObjectId(
+    id,
+    "El id del videojuego debe tener 24 caracteres hexadecimales",
+  );
   const datos = camposPresentes(body);
   const juego = await Videojuego.findById(id);
   if (!juego) {
@@ -202,18 +257,38 @@ export async function actualizar(id: string, body: unknown) {
 }
 
 export async function eliminar(id: string): Promise<void> {
-  exigirObjectId(id, "El id del videojuego debe tener 24 caracteres hexadecimales");
+  exigirObjectId(
+    id,
+    "El id del videojuego debe tener 24 caracteres hexadecimales",
+  );
   const juego = await Videojuego.findByIdAndDelete(id);
   if (!juego) {
     throw new ErrorNoEncontrado("Videojuego no encontrado");
   }
+  await Promise.all([
+    Partida.deleteMany({ videojuego: id }),
+    Meta.deleteMany({ videojuego: id }),
+  ]);
 }
 
-export async function actualizarLogro(id: string, logroId: string, body: unknown) {
-  exigirObjectId(id, "El id del videojuego debe tener 24 caracteres hexadecimales");
-  exigirObjectId(logroId, "El id del logro debe tener 24 caracteres hexadecimales");
+export async function actualizarLogro(
+  id: string,
+  logroId: string,
+  body: unknown,
+) {
+  exigirObjectId(
+    id,
+    "El id del videojuego debe tener 24 caracteres hexadecimales",
+  );
+  exigirObjectId(
+    logroId,
+    "El id del logro debe tener 24 caracteres hexadecimales",
+  );
   const cuerpo = leerObjeto(body);
-  if (!Object.hasOwn(cuerpo, "obtenido") || typeof cuerpo.obtenido !== "boolean") {
+  if (
+    !Object.hasOwn(cuerpo, "obtenido") ||
+    typeof cuerpo.obtenido !== "boolean"
+  ) {
     throw new ErrorValidacion("obtenido debe ser true o false");
   }
 

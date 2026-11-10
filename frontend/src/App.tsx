@@ -1,31 +1,137 @@
 import { CSSProperties, FormEvent, useEffect, useRef, useState } from "react";
-import { ErrorHttp, actualizarEstado, actualizarVideojuego, crearVideojuego, eliminarVideojuego, listarVideojuegos, marcarLogro } from "./api/videojuegosApi";
-import { crearPartida, listarPartidas, obtenerResumen } from "./api/partidasApi";
-import { ESTADOS, GENEROS, PLATAFORMAS, type Estado, type Genero, type LogroFormulario, type Partida, type Plataforma, type Resumen, type Videojuego } from "./tipos";
+import {
+  ErrorHttp,
+  actualizarEstado,
+  actualizarVideojuego,
+  crearVideojuego,
+  eliminarVideojuego,
+  listarVideojuegos,
+  marcarLogro,
+} from "./api/videojuegosApi";
+import {
+  crearPartida,
+  eliminarPartida,
+  listarPartidas,
+  obtenerResumen,
+} from "./api/partidasApi";
+import {
+  actualizarMeta,
+  crearMeta,
+  desactivarMeta,
+  listarMetas,
+  obtenerProgresoSemanal,
+} from "./api/metasApi";
+import {
+  ESTADOS,
+  GENEROS,
+  PLATAFORMAS,
+  type Estado,
+  type Genero,
+  type HitoMeta,
+  type LogroFormulario,
+  type Meta,
+  type Partida,
+  type Plataforma,
+  type ProgresoSemanal,
+  type Resumen,
+  type Videojuego,
+} from "./tipos";
 
-const LOGRO_VACIO: LogroFormulario = { nombre: "", descripcion: "", obtenido: false };
+const LOGRO_VACIO: LogroFormulario = {
+  nombre: "",
+  descripcion: "",
+  obtenido: false,
+};
 const PLANTILLAS_LOGROS: LogroFormulario[] = [
-  { nombre: "Tutorial completado", descripcion: "Completa el tutorial inicial.", obtenido: false },
-  { nombre: "Primera misión", descripcion: "Completa la primera misión principal.", obtenido: false },
-  { nombre: "Mundo abierto explorado", descripcion: "Entra y explora el mundo abierto.", obtenido: false },
-  { nombre: "Zona 1 explorada", descripcion: "Descubre y recorre completamente la zona 1.", obtenido: false },
-  { nombre: "Zona 2 explorada", descripcion: "Descubre y recorre completamente la zona 2.", obtenido: false },
-  { nombre: "Zona 3 explorada", descripcion: "Descubre y recorre completamente la zona 3.", obtenido: false },
-  { nombre: "Zona 4 explorada", descripcion: "Descubre y recorre completamente la zona 4.", obtenido: false },
-  { nombre: "Zona 5 explorada", descripcion: "Descubre y recorre completamente la zona 5.", obtenido: false },
-  { nombre: "Mapa completo", descripcion: "Explora y desbloquea todo el mapa del juego.", obtenido: false },
-  { nombre: "Todas las regiones descubiertas", descripcion: "Descubre todas las regiones principales del juego.", obtenido: false },
-  { nombre: "Áreas secretas encontradas", descripcion: "Encuentra todas las áreas secretas del mapa.", obtenido: false },
-  { nombre: "Juego terminado", descripcion: "Completa la historia principal.", obtenido: false },
-  { nombre: "Nueva partida plus", descripcion: "Desbloquea el modo Nueva partida plus.", obtenido: false },
-  { nombre: "Nivel máximo", descripcion: "Lleva a tu personaje al nivel máximo.", obtenido: false },
-  { nombre: "Todos los coleccionables", descripcion: "Consigue todos los objetos coleccionables.", obtenido: false },
-  { nombre: "Todos los trofeos", descripcion: "Consigue todos los trofeos de la plataforma.", obtenido: false },
+  {
+    nombre: "Tutorial completado",
+    descripcion: "Completa el tutorial inicial.",
+    obtenido: false,
+  },
+  {
+    nombre: "Primera misión",
+    descripcion: "Completa la primera misión principal.",
+    obtenido: false,
+  },
+  {
+    nombre: "Mundo abierto explorado",
+    descripcion: "Entra y explora el mundo abierto.",
+    obtenido: false,
+  },
+  {
+    nombre: "Zona 1 explorada",
+    descripcion: "Descubre y recorre completamente la zona 1.",
+    obtenido: false,
+  },
+  {
+    nombre: "Zona 2 explorada",
+    descripcion: "Descubre y recorre completamente la zona 2.",
+    obtenido: false,
+  },
+  {
+    nombre: "Zona 3 explorada",
+    descripcion: "Descubre y recorre completamente la zona 3.",
+    obtenido: false,
+  },
+  {
+    nombre: "Zona 4 explorada",
+    descripcion: "Descubre y recorre completamente la zona 4.",
+    obtenido: false,
+  },
+  {
+    nombre: "Zona 5 explorada",
+    descripcion: "Descubre y recorre completamente la zona 5.",
+    obtenido: false,
+  },
+  {
+    nombre: "Mapa completo",
+    descripcion: "Explora y desbloquea todo el mapa del juego.",
+    obtenido: false,
+  },
+  {
+    nombre: "Todas las regiones descubiertas",
+    descripcion: "Descubre todas las regiones principales del juego.",
+    obtenido: false,
+  },
+  {
+    nombre: "Áreas secretas encontradas",
+    descripcion: "Encuentra todas las áreas secretas del mapa.",
+    obtenido: false,
+  },
+  {
+    nombre: "Juego terminado",
+    descripcion: "Completa la historia principal.",
+    obtenido: false,
+  },
+  {
+    nombre: "Nueva partida plus",
+    descripcion: "Desbloquea el modo Nueva partida plus.",
+    obtenido: false,
+  },
+  {
+    nombre: "Nivel máximo",
+    descripcion: "Lleva a tu personaje al nivel máximo.",
+    obtenido: false,
+  },
+  {
+    nombre: "Todos los coleccionables",
+    descripcion: "Consigue todos los objetos coleccionables.",
+    obtenido: false,
+  },
+  {
+    nombre: "Todos los trofeos",
+    descripcion: "Consigue todos los trofeos de la plataforma.",
+    obtenido: false,
+  },
 ];
 const FECHA_HOY = new Date().toISOString().slice(0, 10);
 function slugPortada(nombre: string): string {
-  return nombre.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  return nombre
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
 }
 
 type GameTheme = {
@@ -40,15 +146,81 @@ type GameTheme = {
 
 function temaJuego(nombre: string): GameTheme {
   const temas: Record<string, GameTheme> = {
-    "cyberpunk-2077": { ink: "#151515", accent: "#f0e900", paper: "#fffde6", contrast: "#131313", shapeDirection: 1, shapeSpeed: 7, titleFont: '"Orbitron", sans-serif' },
-    "red-dead-redemption-2": { ink: "#24100e", accent: "#d83b32", paper: "#fff2df", contrast: "#fffaf2", shapeDirection: -1, shapeSpeed: 9, titleFont: '"Roboto Slab", serif' },
-    hades: { ink: "#261115", accent: "#f05a28", paper: "#fff0e6", contrast: "#fffaf5", shapeDirection: 1, shapeSpeed: 6, titleFont: '"Cinzel", serif' },
-    celeste: { ink: "#20133a", accent: "#9adcf1", paper: "#f3efff", contrast: "#171225", shapeDirection: -1, shapeSpeed: 8, titleFont: '"Quicksand", sans-serif' },
-    "hollow-knight": { ink: "#101a2c", accent: "#46d9ef", paper: "#edf7fb", contrast: "#f8ffff", shapeDirection: 1, shapeSpeed: 10, titleFont: '"IM Fell English SC", serif' },
-    "hollow-knight-silksong": { ink: "#32151a", accent: "#eb4a3d", paper: "#fff0e9", contrast: "#fff9f5", shapeDirection: -1, shapeSpeed: 7, titleFont: '"IM Fell English SC", serif' },
-    "genshin-impact": { ink: "#10284c", accent: "#8ddcff", paper: "#edf8ff", contrast: "#11233d", shapeDirection: 1, shapeSpeed: 11, titleFont: '"Crimson Pro", serif' },
+    "cyberpunk-2077": {
+      ink: "#151515",
+      accent: "#f0e900",
+      paper: "#fffde6",
+      contrast: "#131313",
+      shapeDirection: 1,
+      shapeSpeed: 7,
+      titleFont: '"Orbitron", sans-serif',
+    },
+    "red-dead-redemption-2": {
+      ink: "#24100e",
+      accent: "#d83b32",
+      paper: "#fff2df",
+      contrast: "#fffaf2",
+      shapeDirection: -1,
+      shapeSpeed: 9,
+      titleFont: '"Roboto Slab", serif',
+    },
+    hades: {
+      ink: "#261115",
+      accent: "#f05a28",
+      paper: "#fff0e6",
+      contrast: "#fffaf5",
+      shapeDirection: 1,
+      shapeSpeed: 6,
+      titleFont: '"Cinzel", serif',
+    },
+    celeste: {
+      ink: "#20133a",
+      accent: "#9adcf1",
+      paper: "#f3efff",
+      contrast: "#171225",
+      shapeDirection: -1,
+      shapeSpeed: 8,
+      titleFont: '"Quicksand", sans-serif',
+    },
+    "hollow-knight": {
+      ink: "#101a2c",
+      accent: "#46d9ef",
+      paper: "#edf7fb",
+      contrast: "#f8ffff",
+      shapeDirection: 1,
+      shapeSpeed: 10,
+      titleFont: '"IM Fell English SC", serif',
+    },
+    "hollow-knight-silksong": {
+      ink: "#32151a",
+      accent: "#eb4a3d",
+      paper: "#fff0e9",
+      contrast: "#fff9f5",
+      shapeDirection: -1,
+      shapeSpeed: 7,
+      titleFont: '"IM Fell English SC", serif',
+    },
+    "genshin-impact": {
+      ink: "#10284c",
+      accent: "#8ddcff",
+      paper: "#edf8ff",
+      contrast: "#11233d",
+      shapeDirection: 1,
+      shapeSpeed: 11,
+      titleFont: '"Crimson Pro", serif',
+    },
   };
-  return temas[slugPortada(nombre)] ?? { ink: "#171717", accent: "#c9a227", paper: "#fbf7ea", contrast: "#171717", shapeDirection: 1, shapeSpeed: 8, titleFont: '"Arial", sans-serif' };
+  return (
+    temas[slugPortada(nombre)] ?? {
+      ink: "#171717",
+      accent: "#c9a227",
+      paper: "#fbf7ea",
+      contrast: "#171717",
+      shapeDirection: 1,
+      shapeSpeed: 8,
+      titleFont: '"Arial", sans-serif',
+    }
+  );
 }
 
 function estiloTema(tema: GameTheme): CSSProperties {
@@ -81,9 +253,15 @@ interface DetalleJuegoProps {
   onChanged: () => Promise<void>;
 }
 
-function DetalleJuego({ juego: juegoInicial, onBack, onChanged }: DetalleJuegoProps) {
+function DetalleJuego({
+  juego: juegoInicial,
+  onBack,
+  onChanged,
+}: DetalleJuegoProps) {
   const [juego, setJuego] = useState(juegoInicial);
   const [resumen, setResumen] = useState<Resumen | null>(null);
+  const [progreso, setProgreso] = useState<ProgresoSemanal | null>(null);
+  const [metaActiva, setMetaActiva] = useState<Meta | null>(null);
   const [partidas, setPartidas] = useState<Partida[]>([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -91,20 +269,50 @@ function DetalleJuego({ juego: juegoInicial, onBack, onChanged }: DetalleJuegoPr
   const [duracion, setDuracion] = useState("60");
   const [avance, setAvance] = useState("0");
   const [guardandoPartida, setGuardandoPartida] = useState(false);
+  const [horasMeta, setHorasMeta] = useState("5");
+  const [diasMeta, setDiasMeta] = useState("4");
+  const [hitosForm, setHitosForm] = useState<HitoMeta[]>([
+    { descripcion: "Llegar al 25 %", porcentajeObjetivo: 25 },
+    { descripcion: "Llegar al 50 %", porcentajeObjetivo: 50 },
+  ]);
+  const [guardandoMeta, setGuardandoMeta] = useState(false);
+  const [mostrarFormMeta, setMostrarFormMeta] = useState(false);
   const tema = temaJuego(juego.nombre);
   const logrosObtenidos = juego.logros.filter((logro) => logro.obtenido).length;
-  const porcentajeLogros = juego.logros.length ? Math.round((logrosObtenidos / juego.logros.length) * 100) : 0;
+  const porcentajeLogros = juego.logros.length
+    ? Math.round((logrosObtenidos / juego.logros.length) * 100)
+    : 0;
+  const anchoHoras = Math.min(progreso?.porcentajeHoras ?? 0, 100);
+  const diasObjetivo = progreso?.meta?.diasPorSemana ?? 0;
 
   async function cargarDetalle() {
     setCargando(true);
     setError(null);
     try {
-      const [nuevoResumen, nuevasPartidas] = await Promise.all([
-        obtenerResumen(juego._id),
-        listarPartidas(juego._id),
-      ]);
+      const [nuevoResumen, nuevasPartidas, nuevoProgreso, metas] =
+        await Promise.all([
+          obtenerResumen(juego._id),
+          listarPartidas(juego._id),
+          obtenerProgresoSemanal(juego._id),
+          listarMetas(juego._id),
+        ]);
       setResumen(nuevoResumen);
       setPartidas(nuevasPartidas);
+      setProgreso(nuevoProgreso);
+      const activa = metas.find((m) => m.activa) ?? null;
+      setMetaActiva(activa);
+      if (activa) {
+        setHorasMeta(String(activa.horasSemanales));
+        setDiasMeta(String(activa.diasPorSemana));
+        setHitosForm(
+          activa.hitos.length
+            ? activa.hitos.map((h) => ({
+                descripcion: h.descripcion,
+                porcentajeObjetivo: h.porcentajeObjetivo,
+              }))
+            : [{ descripcion: "", porcentajeObjetivo: 25 }],
+        );
+      }
     } catch (err) {
       setError(textoError(err));
     } finally {
@@ -144,9 +352,90 @@ function DetalleJuego({ juego: juegoInicial, onBack, onChanged }: DetalleJuegoPr
     }
   }
 
+  async function borrarPartida(id: string) {
+    if (!window.confirm("¿Eliminar esta partida?")) {
+      return;
+    }
+    try {
+      await eliminarPartida(id);
+      await cargarDetalle();
+    } catch (err) {
+      setError(textoError(err));
+    }
+  }
+
+  async function guardarMeta(evento: FormEvent<HTMLFormElement>) {
+    evento.preventDefault();
+    setGuardandoMeta(true);
+    setError(null);
+    try {
+      const hitos = hitosForm
+        .filter((h) => h.descripcion.trim() !== "")
+        .map((h) => ({
+          descripcion: h.descripcion.trim(),
+          porcentajeObjetivo: Number(h.porcentajeObjetivo),
+        }));
+      const payload = {
+        horasSemanales: Number(horasMeta),
+        diasPorSemana: Number(diasMeta),
+        hitos,
+      };
+      if (metaActiva) {
+        await actualizarMeta(metaActiva._id, payload);
+      } else {
+        await crearMeta({ videojuego: juego._id, ...payload });
+      }
+      setMostrarFormMeta(false);
+      await cargarDetalle();
+    } catch (err) {
+      setError(textoError(err));
+    } finally {
+      setGuardandoMeta(false);
+    }
+  }
+
+  async function onDesactivarMeta() {
+    if (!metaActiva) {
+      return;
+    }
+    if (
+      !window.confirm(
+        "¿Desactivar esta meta? Dejará de usarse en el progreso semanal.",
+      )
+    ) {
+      return;
+    }
+    try {
+      await desactivarMeta(metaActiva._id);
+      setMostrarFormMeta(false);
+      await cargarDetalle();
+    } catch (err) {
+      setError(textoError(err));
+    }
+  }
+
+  function actualizarHito(
+    indice: number,
+    campo: keyof HitoMeta,
+    valor: string,
+  ) {
+    setHitosForm((prev) =>
+      prev.map((h, i) =>
+        i === indice
+          ? {
+              ...h,
+              [campo]: campo === "porcentajeObjetivo" ? Number(valor) : valor,
+            }
+          : h,
+      ),
+    );
+  }
+
   return (
     <main className="page detail-page" style={estiloTema(tema)}>
-      <button type="button" className="ghost back-button" onClick={onBack}>← Volver a la colección</button>
+      <button type="button" className="ghost back-button" onClick={onBack}>
+        ← Volver a la colección
+      </button>
       <section className="detail-hero">
         <div className="detail-cover cover-slot">
           <img
@@ -160,9 +449,19 @@ function DetalleJuego({ juego: juegoInicial, onBack, onChanged }: DetalleJuegoPr
         </div>
         <div className="detail-intro">
           <p className="eyebrow">Ficha del juego</p>
-          <h1 className="glitch-title" aria-label={juego.nombre}>{juego.nombre}<span className="glitch-code" aria-hidden="true">{`// ${slugPortada(juego.nombre)} :: 0x7F`}</span></h1>
-          <p className="detail-meta">{juego.genero} · {juego.plataforma} · {juego.estado}</p>
-          <p className="detail-description">{juego.descripcion || "Este juego todavía no tiene descripción."}</p>
+          <h1 className="glitch-title" aria-label={juego.nombre}>
+            {juego.nombre}
+            <span
+              className="glitch-code"
+              aria-hidden="true"
+            >{`// ${slugPortada(juego.nombre)} :: 0x7F`}</span>
+          </h1>
+          <p className="detail-meta">
+            {juego.genero} · {juego.plataforma} · {juego.estado}
+          </p>
+          <p className="detail-description">
+            {juego.descripcion || "Este juego todavía no tiene descripción."}
+          </p>
         </div>
       </section>
 
@@ -173,32 +472,284 @@ function DetalleJuego({ juego: juegoInicial, onBack, onChanged }: DetalleJuegoPr
         <div className="section-heading">
           <div>
             <p className="eyebrow">Progreso calculado</p>
-            <h2 className="glitch-title" aria-label={`Resumen de ${juego.nombre}`}>Resumen de <em>{juego.nombre}</em><span className="glitch-code" aria-hidden="true">0x7F // PROGRESO_SYNC</span></h2>
+            <h2
+              className="glitch-title"
+              aria-label={`Resumen de ${juego.nombre}`}
+            >
+              Resumen de <em>{juego.nombre}</em>
+              <span className="glitch-code" aria-hidden="true">
+                0x7F // PROGRESO_SYNC
+              </span>
+            </h2>
           </div>
         </div>
         <dl className="detail-stats">
-          <div><dt>Horas jugadas</dt><dd>{resumen?.horasTotales ?? 0}</dd></div>
-          <div><dt>Sesiones</dt><dd>{resumen?.cantidadPartidas ?? 0}</dd></div>
-          <div><dt>Avance actual</dt><dd>{resumen?.avanceActual === null || resumen?.avanceActual === undefined ? "—" : `${resumen.avanceActual}%`}</dd></div>
-          <div><dt>Última sesión</dt><dd>{resumen?.fechaUltimaSesion ? new Date(resumen.fechaUltimaSesion).toLocaleDateString("es-ES") : "—"}</dd></div>
+          <div>
+            <dt>Horas jugadas</dt>
+            <dd>{resumen?.horasTotales ?? 0}</dd>
+          </div>
+          <div>
+            <dt>Sesiones</dt>
+            <dd>{resumen?.cantidadPartidas ?? 0}</dd>
+          </div>
+          <div>
+            <dt>Avance actual</dt>
+            <dd>
+              {resumen?.avanceActual === null ||
+              resumen?.avanceActual === undefined
+                ? "—"
+                : `${resumen.avanceActual}%`}
+            </dd>
+          </div>
+          <div>
+            <dt>Última sesión</dt>
+            <dd>
+              {resumen?.fechaUltimaSesion
+                ? new Date(resumen.fechaUltimaSesion).toLocaleDateString(
+                    "es-ES",
+                  )
+                : "—"}
+            </dd>
+          </div>
         </dl>
+      </section>
+
+      <section className="detail-section">
+        <div className="section-heading">
+          <div>
+            <p className="eyebrow">Esta semana</p>
+            <h2 className="glitch-title" aria-label="Progreso semanal">
+              Progreso <em>semanal</em>
+              <span className="glitch-code" aria-hidden="true">
+                WEEK // STREAK
+              </span>
+            </h2>
+          </div>
+        </div>
+        {progreso ? (
+          <>
+            <p className="muted">
+              Semana {progreso.semana.inicio} → {progreso.semana.fin} (Ecuador)
+            </p>
+            <dl className="detail-stats weekly-stats">
+              <div>
+                <dt>Horas semana</dt>
+                <dd>{progreso.horasSemana}</dd>
+              </div>
+              <div>
+                <dt>% horas</dt>
+                <dd>
+                  {progreso.porcentajeHoras === null
+                    ? "—"
+                    : `${progreso.porcentajeHoras}%`}
+                </dd>
+              </div>
+              <div>
+                <dt>Días jugados</dt>
+                <dd>
+                  {progreso.diasJugadosSemana}
+                  {diasObjetivo ? ` / ${diasObjetivo}` : ""}
+                </dd>
+              </div>
+              <div>
+                <dt>Racha / mejor</dt>
+                <dd>
+                  {progreso.rachaActual} / {progreso.mejorRacha}
+                </dd>
+              </div>
+            </dl>
+            {progreso.meta ? (
+              <>
+                <p className="eyebrow">
+                  Horas frente a la meta ({progreso.meta.horasSemanales} h)
+                </p>
+                <div
+                  className="progress-track"
+                  aria-label={`${progreso.porcentajeHoras ?? 0}% de la meta semanal`}
+                >
+                  <span style={{ width: `${anchoHoras}%` }} />
+                </div>
+              </>
+            ) : (
+              <p className="aviso">
+                Sin meta activa.{" "}
+                <button
+                  type="button"
+                  className="ghost inline-link"
+                  onClick={() => setMostrarFormMeta(true)}
+                >
+                  Crear una meta
+                </button>{" "}
+                para medir esta semana.
+              </p>
+            )}
+            {progreso.hitos.length > 0 ? (
+              <ul className="meta-hitos">
+                {progreso.hitos.map((hito) => (
+                  <li
+                    key={`${hito.descripcion}-${hito.porcentajeObjetivo}`}
+                    className={hito.alcanzado ? "alcanzado" : ""}
+                  >
+                    <span>{hito.alcanzado ? "Alcanzado" : "Pendiente"}</span>
+                    <strong>{hito.descripcion}</strong>
+                    <small>{hito.porcentajeObjetivo}%</small>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+          </>
+        ) : (
+          <p className="muted">Aún no hay datos de la semana.</p>
+        )}
+
+        {metaActiva && !mostrarFormMeta ? (
+          <p className="meta-actions">
+            <button
+              type="button"
+              className="ghost"
+              onClick={() => setMostrarFormMeta(true)}
+            >
+              Editar meta
+            </button>
+            <button
+              type="button"
+              className="ghost"
+              onClick={() => void onDesactivarMeta()}
+            >
+              Desactivar meta
+            </button>
+          </p>
+        ) : null}
+
+        {(mostrarFormMeta ||
+          (!metaActiva && progreso?.meta === null && !cargando)) && (
+          <form className="partida-form meta-form" onSubmit={guardarMeta}>
+            <p className="eyebrow">
+              {metaActiva ? "Editar meta" : "Nueva meta"}
+            </p>
+            <label>
+              Horas / semana
+              <input
+                type="number"
+                min="0.1"
+                max="100"
+                step="0.1"
+                value={horasMeta}
+                onChange={(e) => setHorasMeta(e.target.value)}
+                required
+              />
+            </label>
+            <label>
+              Días / semana
+              <input
+                type="number"
+                min="1"
+                max="7"
+                value={diasMeta}
+                onChange={(e) => setDiasMeta(e.target.value)}
+                required
+              />
+            </label>
+            <div className="hitos-editor">
+              <p className="eyebrow">Hitos (máx. 5)</p>
+              {hitosForm.map((hito, indice) => (
+                <div key={indice} className="hito-row">
+                  <input
+                    type="text"
+                    placeholder="Descripción"
+                    value={hito.descripcion}
+                    onChange={(e) =>
+                      actualizarHito(indice, "descripcion", e.target.value)
+                    }
+                  />
+                  <input
+                    type="number"
+                    min="1"
+                    max="100"
+                    value={hito.porcentajeObjetivo}
+                    onChange={(e) =>
+                      actualizarHito(
+                        indice,
+                        "porcentajeObjetivo",
+                        e.target.value,
+                      )
+                    }
+                  />
+                </div>
+              ))}
+              {hitosForm.length < 5 ? (
+                <button
+                  type="button"
+                  className="ghost"
+                  onClick={() =>
+                    setHitosForm((prev) => [
+                      ...prev,
+                      { descripcion: "", porcentajeObjetivo: 75 },
+                    ])
+                  }
+                >
+                  Añadir hito
+                </button>
+              ) : null}
+            </div>
+            <button type="submit" disabled={guardandoMeta}>
+              {guardandoMeta
+                ? "Guardando…"
+                : metaActiva
+                  ? "Guardar cambios"
+                  : "Crear meta"}
+            </button>
+            {metaActiva ? (
+              <button
+                type="button"
+                className="ghost"
+                onClick={() => setMostrarFormMeta(false)}
+              >
+                Cancelar
+              </button>
+            ) : null}
+          </form>
+        )}
       </section>
 
       <section className="detail-section">
         <p className="eyebrow">Hitos personales</p>
         <div className="detail-achievement-heading">
-          <h2 className="glitch-title" aria-label={`Logros ${logrosObtenidos} de ${juego.logros.length}`}>Logros <em>{logrosObtenidos}/{juego.logros.length}</em><span className="glitch-code" aria-hidden="true">ACHV // 0x7F</span></h2>
+          <h2
+            className="glitch-title"
+            aria-label={`Logros ${logrosObtenidos} de ${juego.logros.length}`}
+          >
+            Logros{" "}
+            <em>
+              {logrosObtenidos}/{juego.logros.length}
+            </em>
+            <span className="glitch-code" aria-hidden="true">
+              ACHV // 0x7F
+            </span>
+          </h2>
           <span>{porcentajeLogros}% completado</span>
         </div>
-        <div className="progress-track" aria-label={`${porcentajeLogros}% de logros completados`}>
+        <div
+          className="progress-track"
+          aria-label={`${porcentajeLogros}% de logros completados`}
+        >
           <span style={{ width: `${porcentajeLogros}%` }} />
         </div>
         <ul className="detail-achievements">
           {juego.logros.map((logro) => (
             <li key={logro._id}>
               <label className="check">
-                <input type="checkbox" checked={logro.obtenido} onChange={(evento) => void cambiarLogro(logro._id, evento.target.checked)} />
-                <span><strong>{logro.nombre}</strong><small>{logro.descripcion}</small></span>
+                <input
+                  type="checkbox"
+                  checked={logro.obtenido}
+                  onChange={(evento) =>
+                    void cambiarLogro(logro._id, evento.target.checked)
+                  }
+                />
+                <span>
+                  <strong>{logro.nombre}</strong>
+                  <small>{logro.descripcion}</small>
+                </span>
               </label>
             </li>
           ))}
@@ -207,22 +758,64 @@ function DetalleJuego({ juego: juegoInicial, onBack, onChanged }: DetalleJuegoPr
 
       <section className="detail-section">
         <p className="eyebrow">Registro de sesiones</p>
-        <h2 className="glitch-title" aria-label="Añadir una partida">Añadir una <em>partida</em><span className="glitch-code" aria-hidden="true">RUN // NEW_SESSION</span></h2>
-        <form className="partida-form detail-partida-form" onSubmit={guardarPartida}>
-          <label>Fecha<input type="date" value={fecha} onChange={(evento) => setFecha(evento.target.value)} /></label>
-          <label>Minutos<input type="number" min="1" max="1440" value={duracion} onChange={(evento) => setDuracion(evento.target.value)} /></label>
-          <label>Avance (%)<input type="number" min="0" max="100" value={avance} onChange={(evento) => setAvance(evento.target.value)} /></label>
+        <h2 className="glitch-title" aria-label="Añadir una partida">
+          Añadir una <em>partida</em>
+          <span className="glitch-code" aria-hidden="true">
+            RUN // NEW_SESSION
+          </span>
+        </h2>
+        <form
+          className="partida-form detail-partida-form"
+          onSubmit={guardarPartida}
+        >
+          <label>
+            Fecha
+            <input
+              type="date"
+              value={fecha}
+              onChange={(evento) => setFecha(evento.target.value)}
+            />
+          </label>
+          <label>
+            Minutos
+            <input
+              type="number"
+              min="1"
+              max="1440"
+              value={duracion}
+              onChange={(evento) => setDuracion(evento.target.value)}
+            />
+          </label>
+          <label>
+            Avance (%)
+            <input
+              type="number"
+              min="0"
+              max="100"
+              value={avance}
+              onChange={(evento) => setAvance(evento.target.value)}
+            />
+          </label>
           <button type="submit" disabled={guardandoPartida}>
             {guardandoPartida ? "Guardando…" : "Guardar partida"}
           </button>
         </form>
         <ul className="detail-sessions">
-          {partidas.length === 0 ? <li className="muted">Todavía no hay sesiones registradas.</li> : null}
+          {partidas.length === 0 ? (
+            <li className="muted">Todavía no hay sesiones registradas.</li>
+          ) : null}
           {partidas.map((partida) => (
             <li key={partida._id}>
               <span>{new Date(partida.fecha).toLocaleDateString("es-ES")}</span>
               <span>{partida.duracionMinutos} min</span>
               <span>{partida.porcentajeAvance}% de avance</span>
+              <button
+                type="button"
+                className="ghost session-delete"
+                onClick={() => void borrarPartida(partida._id)}
+              >
+                Eliminar
+              </button>
             </li>
           ))}
         </ul>
@@ -254,10 +847,12 @@ export function App() {
   const [partidaFecha, setPartidaFecha] = useState(FECHA_HOY);
   const [partidaDuracion, setPartidaDuracion] = useState("60");
   const [partidaAvance, setPartidaAvance] = useState("0");
-  const [detalleSeleccionado, setDetalleSeleccionado] = useState<string | null>(() => {
-    const coincidencia = window.location.hash.match(/^#\/juego\/([^/]+)$/);
-    return coincidencia ? decodeURIComponent(coincidencia[1]) : null;
-  });
+  const [detalleSeleccionado, setDetalleSeleccionado] = useState<string | null>(
+    () => {
+      const coincidencia = window.location.hash.match(/^#\/juego\/([^/]+)$/);
+      return coincidencia ? decodeURIComponent(coincidencia[1]) : null;
+    },
+  );
   const [editandoId, setEditandoId] = useState<string | null>(null);
   const [editNombre, setEditNombre] = useState("");
   const [editGenero, setEditGenero] = useState<Genero | "">("");
@@ -267,10 +862,16 @@ export function App() {
   const bibliotecaRef = useRef<HTMLUListElement>(null);
 
   function desplazarBiblioteca(direccion: number) {
-    bibliotecaRef.current?.scrollBy({ left: direccion * 360, behavior: "smooth" });
+    bibliotecaRef.current?.scrollBy({
+      left: direccion * 360,
+      behavior: "smooth",
+    });
   }
 
-  async function cargar(proximoEstado = filtroEstado, proximaPlataforma = filtroPlataforma) {
+  async function cargar(
+    proximoEstado = filtroEstado,
+    proximaPlataforma = filtroPlataforma,
+  ) {
     setError(null);
     const lista = await listarVideojuegos({
       estado: proximoEstado,
@@ -297,7 +898,9 @@ export function App() {
   useEffect(() => {
     const actualizarRuta = () => {
       const coincidencia = window.location.hash.match(/^#\/juego\/([^/]+)$/);
-      setDetalleSeleccionado(coincidencia ? decodeURIComponent(coincidencia[1]) : null);
+      setDetalleSeleccionado(
+        coincidencia ? decodeURIComponent(coincidencia[1]) : null,
+      );
     };
     window.addEventListener("hashchange", actualizarRuta);
     return () => window.removeEventListener("hashchange", actualizarRuta);
@@ -358,7 +961,6 @@ export function App() {
     } catch (err) {
       setError(textoError(err));
     }
-
   }
 
   function iniciarEdicion(juego: Videojuego) {
@@ -421,14 +1023,16 @@ export function App() {
     } catch (err) {
       setError(textoError(err));
     }
-
   }
 
   async function abrirDetalle(id: string) {
     setDetalleId(id);
     setDetalleCargando(true);
     try {
-      const [resumen, lista] = await Promise.all([obtenerResumen(id), listarPartidas(id)]);
+      const [resumen, lista] = await Promise.all([
+        obtenerResumen(id),
+        listarPartidas(id),
+      ]);
       setResumenes((actuales) => ({ ...actuales, [id]: resumen }));
       setPartidas((actuales) => ({ ...actuales, [id]: lista }));
     } catch (err) {
@@ -462,7 +1066,9 @@ export function App() {
     return (
       <DetalleJuego
         juego={juegoDetalle}
-        onBack={() => { window.location.hash = ""; }}
+        onBack={() => {
+          window.location.hash = "";
+        }}
         onChanged={cargar}
       />
     );
@@ -472,7 +1078,9 @@ export function App() {
   const temaHero = temaJuego(juegoHero?.nombre ?? "");
   const cambiarHero = (direccion: number) => {
     if (juegos.length < 2) return;
-    setHeroIndex((actual) => (actual + direccion + juegos.length) % juegos.length);
+    setHeroIndex(
+      (actual) => (actual + direccion + juegos.length) % juegos.length,
+    );
   };
   const posicionHero = (indice: number) => {
     if (juegos.length === 0) return "hero-card-hidden";
@@ -485,7 +1093,10 @@ export function App() {
 
   return (
     <main className="page home-page" style={estiloTema(temaHero)}>
-      <div className={`background-shapes background-shapes-${slugPortada(juegoHero?.nombre ?? "archivo")}`} aria-hidden="true">
+      <div
+        className={`background-shapes background-shapes-${slugPortada(juegoHero?.nombre ?? "archivo")}`}
+        aria-hidden="true"
+      >
         <span className="bg-shape bg-triangle bg-one" />
         <span className="bg-shape bg-square bg-two" />
         <span className="bg-shape bg-diamond bg-three" />
@@ -506,8 +1117,10 @@ export function App() {
       <header
         className="hero"
         onKeyDown={(evento) => {
-          if (evento.key === "ArrowRight" || evento.key === "ArrowDown") cambiarHero(1);
-          if (evento.key === "ArrowLeft" || evento.key === "ArrowUp") cambiarHero(-1);
+          if (evento.key === "ArrowRight" || evento.key === "ArrowDown")
+            cambiarHero(1);
+          if (evento.key === "ArrowLeft" || evento.key === "ArrowUp")
+            cambiarHero(-1);
         }}
         tabIndex={0}
         aria-label="Carrusel infinito de juegos de la colección. Usa las flechas para cambiar."
@@ -519,11 +1132,21 @@ export function App() {
             className="hero-title glitch-title"
             aria-label="Qué estoy jugando"
           >
-            Qué estoy<br /><em>jugando</em><span className="glitch-code" aria-hidden="true">&gt; ISMA // PLAY_MODE :: 0x7F</span>
+            Qué estoy
+            <br />
+            <em>jugando</em>
+            <span className="glitch-code" aria-hidden="true">
+              &gt; ISMA // PLAY_MODE :: 0x7F
+            </span>
           </h1>
           <div className="hero-actions">
-            <a className="hero-link" href="#coleccion">Ver colección <span>↓</span></a>
-            <span className="hero-count">{juegos.length} {juegos.length === 1 ? "juego" : "juegos"} guardados</span>
+            <a className="hero-link" href="#coleccion">
+              Ver colección <span>↓</span>
+            </a>
+            <span className="hero-count">
+              {juegos.length} {juegos.length === 1 ? "juego" : "juegos"}{" "}
+              guardados
+            </span>
           </div>
         </div>
         <div className="hero-deck" aria-live="polite">
@@ -532,7 +1155,9 @@ export function App() {
               key={juego._id}
               type="button"
               className={`hero-card ${posicionHero(indice)}`}
-              onClick={() => { window.location.hash = `/juego/${encodeURIComponent(juego._id)}`; }}
+              onClick={() => {
+                window.location.hash = `/juego/${encodeURIComponent(juego._id)}`;
+              }}
               aria-label={`Abrir ficha de ${juego.nombre}`}
             >
               <img
@@ -548,9 +1173,23 @@ export function App() {
             </button>
           ))}
           <div className="hero-deck-controls">
-            <button type="button" onClick={() => cambiarHero(-1)} aria-label="Juego anterior">←</button>
-            <span>{juegos.length ? `${heroIndex + 1} / ${juegos.length}` : "0 / 0"}</span>
-            <button type="button" onClick={() => cambiarHero(1)} aria-label="Siguiente juego">→</button>
+            <button
+              type="button"
+              onClick={() => cambiarHero(-1)}
+              aria-label="Juego anterior"
+            >
+              ←
+            </button>
+            <span>
+              {juegos.length ? `${heroIndex + 1} / ${juegos.length}` : "0 / 0"}
+            </span>
+            <button
+              type="button"
+              onClick={() => cambiarHero(1)}
+              aria-label="Siguiente juego"
+            >
+              →
+            </button>
           </div>
         </div>
       </header>
@@ -563,42 +1202,31 @@ export function App() {
       </section>
 
       <details className="panel create-panel" open>
-        <summary><span>01</span><strong>Añadir a mi diario</strong><i>+</i></summary>
+        <summary>
+          <span>01</span>
+          <strong>Añadir a mi diario</strong>
+          <i>+</i>
+        </summary>
         <form className="panel-content" onSubmit={enviar}>
-        <h2>Nuevo videojuego</h2>
-        <label>
-          Nombre
-          <input
-            value={nombre}
-            onChange={(evento) => setNombre(evento.target.value)}
-            placeholder="Hades"
-            required
-          />
-        </label>
-        <label>
-          Género
-          <select value={genero} onChange={(evento) => setGenero(evento.target.value as Genero)} required>
-            <option value="">Selecciona un género</option>
-            {GENEROS.map((item) => <option key={item} value={item}>{item}</option>)}
-          </select>
-        </label>
-        <label>
-          Descripción
-          <textarea
-            value={descripcion}
-            onChange={(evento) => setDescripcion(evento.target.value)}
-            placeholder="Describe brevemente el videojuego."
-            rows={3}
-          />
-        </label>
-        <div className="fila">
+          <h2>Nuevo videojuego</h2>
           <label>
-            Plataforma
+            Nombre
+            <input
+              value={nombre}
+              onChange={(evento) => setNombre(evento.target.value)}
+              placeholder="Hades"
+              required
+            />
+          </label>
+          <label>
+            Género
             <select
-              value={plataforma}
-              onChange={(evento) => setPlataforma(evento.target.value as Plataforma)}
+              value={genero}
+              onChange={(evento) => setGenero(evento.target.value as Genero)}
+              required
             >
-              {PLATAFORMAS.map((item) => (
+              <option value="">Selecciona un género</option>
+              {GENEROS.map((item) => (
                 <option key={item} value={item}>
                   {item}
                 </option>
@@ -606,103 +1234,155 @@ export function App() {
             </select>
           </label>
           <label>
-            Estado
-            <select value={estado} onChange={(evento) => setEstado(evento.target.value as Estado)}>
-              {ESTADOS.map((item) => (
-                <option key={item} value={item}>
-                  {item}
-                </option>
-              ))}
-            </select>
+            Descripción
+            <textarea
+              value={descripcion}
+              onChange={(evento) => setDescripcion(evento.target.value)}
+              placeholder="Describe brevemente el videojuego."
+              rows={3}
+            />
           </label>
-        </div>
-
-        <fieldset>
-          <legend>Logros <span>(opcional)</span></legend>
-          <div className="logro-acciones">
+          <div className="fila">
             <label>
-              Plantilla de logro
-              <select value={plantillaSeleccionada} onChange={(evento) => setPlantillaSeleccionada(evento.target.value)}>
-                <option value="">Selecciona una plantilla</option>
-                {PLANTILLAS_LOGROS.map((plantilla) => (
-                  <option key={plantilla.nombre} value={plantilla.nombre}>{plantilla.nombre}</option>
+              Plataforma
+              <select
+                value={plataforma}
+                onChange={(evento) =>
+                  setPlataforma(evento.target.value as Plataforma)
+                }
+              >
+                {PLATAFORMAS.map((item) => (
+                  <option key={item} value={item}>
+                    {item}
+                  </option>
                 ))}
               </select>
             </label>
-            <button
-              type="button"
-              className="ghost"
-              disabled={!plantillaSeleccionada}
-              onClick={() => {
-                const plantilla = PLANTILLAS_LOGROS.find((item) => item.nombre === plantillaSeleccionada);
-                if (!plantilla) return;
-                const filas = logros.some((item) => item.nombre.trim() === "")
-                  ? logros.filter((item) => item.nombre.trim() !== "")
-                  : logros;
-                setLogros([...filas, { ...plantilla }]);
-                setPlantillaSeleccionada("");
-              }}
-            >
-              Añadir plantilla
-            </button>
+            <label>
+              Estado
+              <select
+                value={estado}
+                onChange={(evento) => setEstado(evento.target.value as Estado)}
+              >
+                {ESTADOS.map((item) => (
+                  <option key={item} value={item}>
+                    {item}
+                  </option>
+                ))}
+              </select>
+            </label>
           </div>
-          {logros.map((logro, indice) => (
-            <div className="logro-fila" key={indice}>
-              <input
-                value={logro.nombre}
-                onChange={(evento) => {
-                  const copia = [...logros];
-                  copia[indice] = { ...copia[indice], nombre: evento.target.value };
-                  setLogros(copia);
-                }}
-                placeholder="Nombre del logro"
-              />
-              <input
-                value={logro.descripcion}
-                onChange={(evento) => {
-                  const copia = [...logros];
-                  copia[indice] = { ...copia[indice], descripcion: evento.target.value };
-                  setLogros(copia);
-                }}
-                placeholder="Descripción"
-              />
-              <label className="check">
-                <input
-                  type="checkbox"
-                  checked={logro.obtenido}
-                  onChange={(evento) => {
-                    const copia = [...logros];
-                    copia[indice] = { ...copia[indice], obtenido: evento.target.checked };
-                    setLogros(copia);
-                  }}
-                />
-                Obtenido
+
+          <fieldset>
+            <legend>
+              Logros <span>(opcional)</span>
+            </legend>
+            <div className="logro-acciones">
+              <label>
+                Plantilla de logro
+                <select
+                  value={plantillaSeleccionada}
+                  onChange={(evento) =>
+                    setPlantillaSeleccionada(evento.target.value)
+                  }
+                >
+                  <option value="">Selecciona una plantilla</option>
+                  {PLANTILLAS_LOGROS.map((plantilla) => (
+                    <option key={plantilla.nombre} value={plantilla.nombre}>
+                      {plantilla.nombre}
+                    </option>
+                  ))}
+                </select>
               </label>
               <button
                 type="button"
-                className="remove-logro"
-                aria-label={`Quitar logro ${logro.nombre || "sin nombre"}`}
-                onClick={() => setLogros(logros.filter((_, posicion) => posicion !== indice))}
+                className="ghost"
+                disabled={!plantillaSeleccionada}
+                onClick={() => {
+                  const plantilla = PLANTILLAS_LOGROS.find(
+                    (item) => item.nombre === plantillaSeleccionada,
+                  );
+                  if (!plantilla) return;
+                  const filas = logros.some((item) => item.nombre.trim() === "")
+                    ? logros.filter((item) => item.nombre.trim() !== "")
+                    : logros;
+                  setLogros([...filas, { ...plantilla }]);
+                  setPlantillaSeleccionada("");
+                }}
               >
-                Quitar
+                Añadir plantilla
               </button>
             </div>
-          ))}
-          <button
-            type="button"
-            className="ghost"
-            onClick={() => setLogros([...logros, { ...LOGRO_VACIO }])}
-          >
-            Añadir logro personalizado
+            {logros.map((logro, indice) => (
+              <div className="logro-fila" key={indice}>
+                <input
+                  value={logro.nombre}
+                  onChange={(evento) => {
+                    const copia = [...logros];
+                    copia[indice] = {
+                      ...copia[indice],
+                      nombre: evento.target.value,
+                    };
+                    setLogros(copia);
+                  }}
+                  placeholder="Nombre del logro"
+                />
+                <input
+                  value={logro.descripcion}
+                  onChange={(evento) => {
+                    const copia = [...logros];
+                    copia[indice] = {
+                      ...copia[indice],
+                      descripcion: evento.target.value,
+                    };
+                    setLogros(copia);
+                  }}
+                  placeholder="Descripción"
+                />
+                <label className="check">
+                  <input
+                    type="checkbox"
+                    checked={logro.obtenido}
+                    onChange={(evento) => {
+                      const copia = [...logros];
+                      copia[indice] = {
+                        ...copia[indice],
+                        obtenido: evento.target.checked,
+                      };
+                      setLogros(copia);
+                    }}
+                  />
+                  Obtenido
+                </label>
+                <button
+                  type="button"
+                  className="remove-logro"
+                  aria-label={`Quitar logro ${logro.nombre || "sin nombre"}`}
+                  onClick={() =>
+                    setLogros(
+                      logros.filter((_, posicion) => posicion !== indice),
+                    )
+                  }
+                >
+                  Quitar
+                </button>
+              </div>
+            ))}
+            <button
+              type="button"
+              className="ghost"
+              onClick={() => setLogros([...logros, { ...LOGRO_VACIO }])}
+            >
+              Añadir logro personalizado
+            </button>
+          </fieldset>
+
+          {error ? <p className="error">{error}</p> : null}
+          {aviso ? <p className="aviso">{aviso}</p> : null}
+
+          <button type="submit" disabled={guardando}>
+            {guardando ? "Guardando…" : "Guardar en mi diario"}
           </button>
-        </fieldset>
-
-        {error ? <p className="error">{error}</p> : null}
-        {aviso ? <p className="aviso">{aviso}</p> : null}
-
-        <button type="submit" disabled={guardando}>
-          {guardando ? "Guardando…" : "Guardar en mi diario"}
-        </button>
         </form>
       </details>
 
@@ -710,66 +1390,85 @@ export function App() {
         <div className="section-heading">
           <div>
             <p className="eyebrow">02 / Mi colección</p>
-            <h2 className="glitch-title" aria-label="Mis juegos guardados">Mis juegos <em>guardados</em><span className="glitch-code" aria-hidden="true">COLLECTION // LOCAL_MEMORY</span></h2>
+            <h2 className="glitch-title" aria-label="Mis juegos guardados">
+              Mis juegos <em>guardados</em>
+              <span className="glitch-code" aria-hidden="true">
+                COLLECTION // LOCAL_MEMORY
+              </span>
+            </h2>
           </div>
         </div>
         <details className="filters">
-          <summary>Filtrar colección <span>+</span></summary>
+          <summary>
+            Filtrar colección <span>+</span>
+          </summary>
           <div className="fila">
-          <label>
-            Filtrar estado
-            <select
-              value={filtroEstado}
-              onChange={(evento) => setFiltroEstado(evento.target.value as Estado | "")}
+            <label>
+              Filtrar estado
+              <select
+                value={filtroEstado}
+                onChange={(evento) =>
+                  setFiltroEstado(evento.target.value as Estado | "")
+                }
+              >
+                <option value="">todos</option>
+                {ESTADOS.map((item) => (
+                  <option key={item} value={item}>
+                    {item}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              Filtrar plataforma
+              <select
+                value={filtroPlataforma}
+                onChange={(evento) =>
+                  setFiltroPlataforma(evento.target.value as Plataforma | "")
+                }
+              >
+                <option value="">todas</option>
+                {PLATAFORMAS.map((item) => (
+                  <option key={item} value={item}>
+                    {item}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <button
+              type="button"
+              className="ghost"
+              onClick={() => {
+                setCargando(true);
+                cargar()
+                  .catch((err: unknown) => setError(textoError(err)))
+                  .finally(() => setCargando(false));
+              }}
             >
-              <option value="">todos</option>
-              {ESTADOS.map((item) => (
-                <option key={item} value={item}>
-                  {item}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label>
-            Filtrar plataforma
-            <select
-              value={filtroPlataforma}
-              onChange={(evento) => setFiltroPlataforma(evento.target.value as Plataforma | "")}
-            >
-              <option value="">todas</option>
-              {PLATAFORMAS.map((item) => (
-                <option key={item} value={item}>
-                  {item}
-                </option>
-              ))}
-            </select>
-          </label>
-          <button
-            type="button"
-            className="ghost"
-            onClick={() => {
-              setCargando(true);
-              cargar()
-                .catch((err: unknown) => setError(textoError(err)))
-                .finally(() => setCargando(false));
-            }}
-          >
-            Aplicar filtros
-          </button>
+              Aplicar filtros
+            </button>
           </div>
         </details>
 
         {cargando ? <p>Cargando…</p> : null}
-        {!cargando && juegos.length === 0 ? <p>No hay videojuegos con ese filtro.</p> : null}
+        {!cargando && juegos.length === 0 ? (
+          <p>No hay videojuegos con ese filtro.</p>
+        ) : null}
 
         <ul className="lista" ref={bibliotecaRef}>
           {juegos.map((juego) => (
-            <li key={juego._id} className="game-card" style={estiloTema(temaJuego(juego.nombre))}>
+            <li
+              key={juego._id}
+              className="game-card"
+              style={estiloTema(temaJuego(juego.nombre))}
+            >
               <button
                 type="button"
                 className="cover-slot cover-button"
                 aria-label={`Ver detalle de ${juego.nombre}`}
-                onClick={() => { window.location.hash = `/juego/${encodeURIComponent(juego._id)}`; }}
+                onClick={() => {
+                  window.location.hash = `/juego/${encodeURIComponent(juego._id)}`;
+                }}
               >
                 <img
                   src={`/img/${slugPortada(juego.nombre)}.png`}
@@ -785,36 +1484,85 @@ export function App() {
                   <div className="edicion-juego">
                     <label>
                       Nombre
-                      <input value={editNombre} onChange={(evento) => setEditNombre(evento.target.value)} />
+                      <input
+                        value={editNombre}
+                        onChange={(evento) =>
+                          setEditNombre(evento.target.value)
+                        }
+                      />
                     </label>
                     <label>
                       Género
-                      <select value={editGenero} onChange={(evento) => setEditGenero(evento.target.value as Genero)}>
+                      <select
+                        value={editGenero}
+                        onChange={(evento) =>
+                          setEditGenero(evento.target.value as Genero)
+                        }
+                      >
                         <option value="">Selecciona un género</option>
-                        {GENEROS.map((item) => <option key={item} value={item}>{item}</option>)}
+                        {GENEROS.map((item) => (
+                          <option key={item} value={item}>
+                            {item}
+                          </option>
+                        ))}
                       </select>
                     </label>
                     <label>
                       Descripción
-                      <textarea rows={3} value={editDescripcion} onChange={(evento) => setEditDescripcion(evento.target.value)} />
+                      <textarea
+                        rows={3}
+                        value={editDescripcion}
+                        onChange={(evento) =>
+                          setEditDescripcion(evento.target.value)
+                        }
+                      />
                     </label>
                     <div className="edicion-fila">
                       <label>
                         Plataforma
-                        <select value={editPlataforma} onChange={(evento) => setEditPlataforma(evento.target.value as Plataforma)}>
-                          {PLATAFORMAS.map((item) => <option key={item} value={item}>{item}</option>)}
+                        <select
+                          value={editPlataforma}
+                          onChange={(evento) =>
+                            setEditPlataforma(evento.target.value as Plataforma)
+                          }
+                        >
+                          {PLATAFORMAS.map((item) => (
+                            <option key={item} value={item}>
+                              {item}
+                            </option>
+                          ))}
                         </select>
                       </label>
                       <label>
                         Estado
-                        <select value={editEstado} onChange={(evento) => setEditEstado(evento.target.value as Estado)}>
-                          {ESTADOS.map((item) => <option key={item} value={item}>{item}</option>)}
+                        <select
+                          value={editEstado}
+                          onChange={(evento) =>
+                            setEditEstado(evento.target.value as Estado)
+                          }
+                        >
+                          {ESTADOS.map((item) => (
+                            <option key={item} value={item}>
+                              {item}
+                            </option>
+                          ))}
                         </select>
                       </label>
                     </div>
                     <div className="edicion-acciones">
-                      <button type="button" onClick={() => void guardarEdicion(juego._id)}>Guardar cambios</button>
-                      <button type="button" className="ghost" onClick={() => setEditandoId(null)}>Cancelar</button>
+                      <button
+                        type="button"
+                        onClick={() => void guardarEdicion(juego._id)}
+                      >
+                        Guardar cambios
+                      </button>
+                      <button
+                        type="button"
+                        className="ghost"
+                        onClick={() => setEditandoId(null)}
+                      >
+                        Cancelar
+                      </button>
                     </div>
                   </div>
                 ) : (
@@ -825,28 +1573,69 @@ export function App() {
                           type="button"
                           className="game-title glitch-title"
                           aria-label={`Ver detalle de ${juego.nombre}`}
-                          onClick={() => { window.location.hash = `/juego/${encodeURIComponent(juego._id)}`; }}
+                          onClick={() => {
+                            window.location.hash = `/juego/${encodeURIComponent(juego._id)}`;
+                          }}
                         >
-                          {juego.nombre}<span className="glitch-code" aria-hidden="true">GAME // 0x7F</span>
+                          {juego.nombre}
+                          <span className="glitch-code" aria-hidden="true">
+                            GAME // 0x7F
+                          </span>
                         </button>
-                        <span className="platform">{juego.genero} · {juego.plataforma}</span>
-                        {juego.descripcion ? <p className="game-description">{juego.descripcion}</p> : null}
+                        <span className="platform">
+                          {juego.genero} · {juego.plataforma}
+                        </span>
+                        {juego.descripcion ? (
+                          <p className="game-description">
+                            {juego.descripcion}
+                          </p>
+                        ) : null}
                       </div>
                       <div className="juego-acciones">
-                        <button type="button" className="ghost editar" onClick={() => iniciarEdicion(juego)}>Editar</button>
-                        <button type="button" className="peligro" onClick={() => void borrar(juego._id, juego.nombre)}>Borrar</button>
+                        <button
+                          type="button"
+                          className="ghost editar"
+                          onClick={() => iniciarEdicion(juego)}
+                        >
+                          Editar
+                        </button>
+                        <button
+                          type="button"
+                          className="peligro"
+                          onClick={() => void borrar(juego._id, juego.nombre)}
+                        >
+                          Borrar
+                        </button>
                       </div>
                     </div>
                     <label className="status-control">
                       Estado
-                      <select value={juego.estado} onChange={(evento) => void cambiarEstado(juego._id, evento.target.value as Estado)}>
-                        {ESTADOS.map((item) => <option key={item} value={item}>{item}</option>)}
+                      <select
+                        value={juego.estado}
+                        onChange={(evento) =>
+                          void cambiarEstado(
+                            juego._id,
+                            evento.target.value as Estado,
+                          )
+                        }
+                      >
+                        {ESTADOS.map((item) => (
+                          <option key={item} value={item}>
+                            {item}
+                          </option>
+                        ))}
                       </select>
                     </label>
                   </>
                 )}
                 <details className="achievement-dropdown">
-                  <summary>Logros <span>{juego.logros.filter((logro) => logro.obtenido).length}/{juego.logros.length}</span></summary>
+                  <summary>
+                    Logros{" "}
+                    <span>
+                      {juego.logros.filter((logro) => logro.obtenido).length}/
+                      {juego.logros.length}
+                    </span>
+                  </summary>
                   {juego.logros.length === 0 ? (
                     <p className="muted">Sin logros</p>
                   ) : (
@@ -858,40 +1647,116 @@ export function App() {
                               type="checkbox"
                               checked={logro.obtenido}
                               onChange={(evento) =>
-                                void cambiarLogro(juego._id, logro._id, evento.target.checked)
+                                void cambiarLogro(
+                                  juego._id,
+                                  logro._id,
+                                  evento.target.checked,
+                                )
                               }
                             />
-                            <span>{logro.nombre}{logro.descripcion ? ` — ${logro.descripcion}` : ""}</span>
+                            <span>
+                              {logro.nombre}
+                              {logro.descripcion
+                                ? ` — ${logro.descripcion}`
+                                : ""}
+                            </span>
                           </label>
                         </li>
                       ))}
                     </ul>
                   )}
                 </details>
-                <button type="button" className="ghost detail-toggle" onClick={() => { window.location.hash = `/juego/${encodeURIComponent(juego._id)}`; }}>
+                <button
+                  type="button"
+                  className="ghost detail-toggle"
+                  onClick={() => {
+                    window.location.hash = `/juego/${encodeURIComponent(juego._id)}`;
+                  }}
+                >
                   Ver ficha completa
                 </button>
                 {detalleId === juego._id ? (
                   <div className="detalle">
-                    {detalleCargando ? <p className="muted">Cargando detalle…</p> : null}
+                    {detalleCargando ? (
+                      <p className="muted">Cargando detalle…</p>
+                    ) : null}
                     {resumenes[juego._id] ? (
                       <dl className="resumen">
-                        <div><dt>Horas</dt><dd>{resumenes[juego._id].horasTotales}</dd></div>
-                        <div><dt>Sesiones</dt><dd>{resumenes[juego._id].cantidadPartidas}</dd></div>
-                        <div><dt>Avance</dt><dd>{resumenes[juego._id].avanceActual === null ? "—" : `${resumenes[juego._id].avanceActual}%`}</dd></div>
+                        <div>
+                          <dt>Horas</dt>
+                          <dd>{resumenes[juego._id].horasTotales}</dd>
+                        </div>
+                        <div>
+                          <dt>Sesiones</dt>
+                          <dd>{resumenes[juego._id].cantidadPartidas}</dd>
+                        </div>
+                        <div>
+                          <dt>Avance</dt>
+                          <dd>
+                            {resumenes[juego._id].avanceActual === null
+                              ? "—"
+                              : `${resumenes[juego._id].avanceActual}%`}
+                          </dd>
+                        </div>
                       </dl>
                     ) : null}
                     <div className="partida-form">
-                      <label>Fecha<input type="date" value={partidaFecha} onChange={(evento) => setPartidaFecha(evento.target.value)} /></label>
-                      <label>Minutos<input type="number" min="1" max="1440" value={partidaDuracion} onChange={(evento) => setPartidaDuracion(evento.target.value)} /></label>
-                      <label>Avance (%)<input type="number" min="0" max="100" value={partidaAvance} onChange={(evento) => setPartidaAvance(evento.target.value)} /></label>
-                      <button type="button" onClick={() => void guardarPartida(juego._id)}>Guardar partida</button>
+                      <label>
+                        Fecha
+                        <input
+                          type="date"
+                          value={partidaFecha}
+                          onChange={(evento) =>
+                            setPartidaFecha(evento.target.value)
+                          }
+                        />
+                      </label>
+                      <label>
+                        Minutos
+                        <input
+                          type="number"
+                          min="1"
+                          max="1440"
+                          value={partidaDuracion}
+                          onChange={(evento) =>
+                            setPartidaDuracion(evento.target.value)
+                          }
+                        />
+                      </label>
+                      <label>
+                        Avance (%)
+                        <input
+                          type="number"
+                          min="0"
+                          max="100"
+                          value={partidaAvance}
+                          onChange={(evento) =>
+                            setPartidaAvance(evento.target.value)
+                          }
+                        />
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => void guardarPartida(juego._id)}
+                      >
+                        Guardar partida
+                      </button>
                     </div>
                     {partidas[juego._id]?.length ? (
                       <ul className="partidas">
-                        {partidas[juego._id].map((partida) => <li key={partida._id}>{new Date(partida.fecha).toLocaleDateString("es-ES")} · {partida.duracionMinutos} min · {partida.porcentajeAvance}%</li>)}
+                        {partidas[juego._id].map((partida) => (
+                          <li key={partida._id}>
+                            {new Date(partida.fecha).toLocaleDateString(
+                              "es-ES",
+                            )}{" "}
+                            · {partida.duracionMinutos} min ·{" "}
+                            {partida.porcentajeAvance}%
+                          </li>
+                        ))}
                       </ul>
-                    ) : <p className="muted">Aún no hay partidas registradas.</p>}
+                    ) : (
+                      <p className="muted">Aún no hay partidas registradas.</p>
+                    )}
                   </div>
                 ) : null}
               </div>
