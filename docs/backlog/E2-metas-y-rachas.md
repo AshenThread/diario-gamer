@@ -38,18 +38,18 @@
 
 ## Tickets
 
-| ID   | Tipo     | Descripción                                        | DoD                                                             | Depende    |
-| ---- | -------- | -------------------------------------------------- | --------------------------------------------------------------- | ---------- |
-| T-01 | backend  | Modelo Meta + validaciones Mongoose                | Schema con validaciones de ficha; timestamps                    | —          |
-| T-02 | backend  | CRUD Meta + 409 segunda activa                     | Crear, get, listar por juego, actualizar, desactivar; 409 claro | T-01       |
-| T-03 | backend  | Dominio puro `progreso.ts` + tests Vitest          | Funciones puras; ≥1 test por criterio sin DB; `npm test` verde  | —          |
-| T-04 | backend  | `GET /api/videojuegos/:id/progreso-semanal`        | Respuesta según PRD; 400/404; sin meta / sin partidas           | T-01, T-03 |
-| T-05 | backend  | Cascade delete videojuego → partidas + metas (D1)  | Criterio + verificación; sin huérfanos                          | T-01       |
-| T-06 | frontend | Sección progreso semanal + hitos en detalle        | Barra, días, rachas, hitos; estados carga/error/vacío           | T-04, T-08 |
-| T-07 | frontend | Formulario meta create/edit/desactivar             | Validación UI; confirmación al desactivar                       | T-02, T-08 |
-| T-08 | frontend | `metasApi.ts` + refresh tras mutaciones de partida | Servicio separado; refetch progreso                             | T-02, T-04 |
-| T-09 | frontend | Deuda D3: eliminar partida en ficha                | Client + botón + refresh resumen/progreso                       | T-08       |
-| T-10 | proceso  | Auditoría, bitácora, deploy, PR                    | `AUDITORIA.md`, URLs, PR con tickets                            | T-01…T-09  |
+| ID | Tipo | Descripción | DoD | Depende | Estado |
+| --- | --- | --- | --- | --- | --- |
+| T-01 | backend | Modelo Meta + validaciones Mongoose | Schema con validaciones de ficha; timestamps | — | Hecho |
+| T-02 | backend | CRUD Meta + 409 segunda activa | Crear, get, listar por juego, actualizar, desactivar; 409 claro | T-01 | Hecho |
+| T-03 | backend | Dominio puro `progreso.ts` + tests Vitest | Funciones puras; ≥1 test por criterio sin DB; `npm test` verde | — | Hecho |
+| T-04 | backend | `GET /api/videojuegos/:id/progreso-semanal` | Respuesta según PRD; 400/404; sin meta / sin partidas | T-01, T-03 | Hecho |
+| T-05 | backend | Cascade delete videojuego → partidas + metas (D1) | Criterio + verificación; sin huérfanos | T-01 | Hecho |
+| T-06 | frontend | Sección progreso semanal + hitos en detalle | Barra, días, rachas, hitos; estados carga/error/vacío | T-04, T-08 | Hecho |
+| T-07 | frontend | Formulario meta create/edit/desactivar | Validación UI; confirmación al desactivar | T-02, T-08 | Hecho |
+| T-08 | frontend | `metasApi.ts` + refresh tras mutaciones de partida | Servicio separado; refetch progreso | T-02, T-04 | Hecho |
+| T-09 | frontend | Deuda D3: eliminar partida en ficha | Client + botón + refresh resumen/progreso | T-08 | Hecho |
+| T-10 | proceso | Auditoría, bitácora, deploy, PR | `AUDITORIA.md`, URLs, PR con tickets | T-01…T-09 | Hecho |
 
 ## Deuda técnica (diferida)
 
