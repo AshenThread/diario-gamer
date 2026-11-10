@@ -7,10 +7,13 @@ async function manejar<T>(respuesta: Response): Promise<T> {
   if (respuesta.status === 204) {
     return undefined as T;
   }
-  const cuerpo = await respuesta.json() as T | { error?: string; detalles?: string[] };
+  const cuerpo = (await respuesta.json()) as
+    T | { error?: string; detalles?: string[] };
   if (!respuesta.ok) {
     const error = cuerpo as { error?: string; detalles?: string[] };
-    throw new Error([error.error, ...(error.detalles ?? [])].filter(Boolean).join(": "));
+    throw new Error(
+      [error.error, ...(error.detalles ?? [])].filter(Boolean).join(": "),
+    );
   }
   return cuerpo as T;
 }
@@ -37,4 +40,9 @@ export async function crearPartida(datos: {
 export async function obtenerResumen(videojuegoId: string): Promise<Resumen> {
   const respuesta = await fetch(`${BASE}/videojuegos/${videojuegoId}/resumen`);
   return manejar<Resumen>(respuesta);
+}
+
+export async function eliminarPartida(id: string): Promise<void> {
+  const respuesta = await fetch(`${BASE}/partidas/${id}`, { method: "DELETE" });
+  return manejar<void>(respuesta);
 }
