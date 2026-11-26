@@ -1,6 +1,16 @@
 #!/usr/bin/env bash
-# Auto-commit after any file edit (agent or Tab). Fail-open: never block the editor.
+# Auto-commit opt-in tras editar un archivo (agente o Tab). Si falla, no bloquea el editor.
+#
+# Desactivado salvo DIARIO_AUTO_COMMIT=1. Commitear en cada edición llenaba el
+# historial, podía guardar trabajo a medias y tapaba los mensajes intencionales
+# del repo (spec antes que el código, feat(E2): T-0x). Los commits ya publicados
+# se dejan como están.
+# Para una sesión: export DIARIO_AUTO_COMMIT=1 antes de abrir Cursor.
 set -u
+
+if [[ "${DIARIO_AUTO_COMMIT:-}" != "1" ]]; then
+  exit 0
+fi
 
 input="$(cat || true)"
 

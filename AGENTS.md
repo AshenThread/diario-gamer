@@ -39,6 +39,12 @@ cd frontend && npm run dev | npm run build
 4. No inventar producto fuera de la ficha / PRD.
 5. Zona horaria de semana y rachas: `America/Guayaquil`.
 
+## Hooks
+
+`.cursor/hooks/auto-commit.sh` corre tras cada edición, pero solo crea un commit
+si `DIARIO_AUTO_COMMIT=1`. El historial tiene que ser intencional (spec antes
+que el código, mensaje con ticket). No reescribir commits ya publicados.
+
 ## Frontend
 
 Seguir `DESIGN.md`: tokens `--game-*`, tipografías por juego, sin librerías de UI no autorizadas. Secciones nuevas en la ficha usan `.detail-section`.

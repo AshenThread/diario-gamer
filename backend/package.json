@@ -8,7 +8,7 @@
     "build": "tsc",
     "seed": "tsx src/seed.ts",
     "start": "node dist/server.js",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit -p tsconfig.typecheck.json",
     "test": "vitest run"
   },
   "engines": {
@@ -24,6 +24,8 @@
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/node": "^26.6.5",
+    "@types/supertest": "^7.2.1",
+    "supertest": "^7.3.2",
     "tsx": "^4.23.15",
     "typescript": "^7.0.2",
     "vitest": "^5.1.0"

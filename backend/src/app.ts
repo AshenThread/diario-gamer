@@ -15,6 +15,12 @@ export function crearApp(corsOrigin: string): express.Express {
   app.use(logger);
   app.use(cors({ origin: corsOrigin }));
   app.use(express.json());
+
+  // Vida del proceso, sin MongoDB. Render sigue en /api/videojuegos (render.yaml).
+  app.get("/health", (_req, res) => {
+    res.status(200).json({ status: "ok" });
+  });
+
   app.use("/api/videojuegos", videojuegoRutas);
   app.use("/api/partidas", partidaRutas);
   app.use("/api/metas", metaRutas);
