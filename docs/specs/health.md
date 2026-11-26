@@ -3,8 +3,8 @@
 ## Contexto
 
 La raíz de la API responde 404: no hay un documento de bienvenida. Hace falta
-una ruta de liveness barata para revisores y probes, sin abrir MongoDB. El
-health check ya desplegado en Render (`healthCheckPath: /api/videojuegos` en
+una ruta barata para saber si el proceso está vivo, sin abrir MongoDB. El
+chequeo de salud ya desplegado en Render (`healthCheckPath: /api/videojuegos` en
 `render.yaml`) sigue igual y continúa comprobando la API contra la base.
 
 ## DEBE

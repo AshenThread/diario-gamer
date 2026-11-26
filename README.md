@@ -1,45 +1,45 @@
 # Diario de Progreso Gamer
 
-## For reviewers
+## Para quien revise el repo
 
-Personal game diary, used here as a software-engineering sample: an Express + TypeScript REST API on MongoDB, and a React client. You record games, play sessions, weekly goals, and streaks. This pass adds a liveness route, tests above the domain layer, CI, and a safer agent hook. Game, session, goal, and streak behavior stays as specified in the PRD.
+Diario personal de videojuegos, usado como muestra de ingeniería de software: una API REST en Express y TypeScript con MongoDB, y un cliente en React. Ahí se registran juegos, sesiones, metas semanales y rachas. Este cambio añade una ruta para saber si el proceso está vivo, tests por encima del dominio, integración continua y un hook del agente más seguro. Juegos, sesiones, metas y rachas siguen como los define el PRD.
 
 ### Stack
 
 - **API:** Node.js ≥ 20, Express 5, TypeScript, Mongoose, MongoDB Atlas
 - **Web:** React 18, TypeScript, Vite
-- **Tests:** Vitest. Domain rules run with no database; HTTP and service tests mock the service boundary or Mongoose
-- **Deploy:** Render web service + static site ([`render.yaml`](./render.yaml))
-- **Week and streaks:** `America/Guayaquil`
+- **Tests:** Vitest. Las reglas de dominio corren sin base de datos; los tests HTTP y de servicio simulan la frontera del servicio o Mongoose
+- **Despliegue:** servicio web y sitio estático en Render ([`render.yaml`](./render.yaml))
+- **Semana y rachas:** `America/Guayaquil`
 
-### Architecture
+### Arquitectura
 
 ```text
-Browser (React + Vite)
+Navegador (React + Vite)
         |  VITE_API_URL
         v
 crearApp — requestId, logger, CORS, JSON
-        |-- GET /health                         liveness, no database
+        |-- GET /health                         vivo, sin base de datos
         |-- /api/videojuegos | /api/partidas | /api/metas
         v
-controllers → services → Mongoose models → MongoDB
-                 |
-                 +→ dominio/progreso.ts         pure hours, streaks, milestones
+controladores → servicios → modelos Mongoose → MongoDB
+                    |
+                    +→ dominio/progreso.ts      horas, rachas e hitos, funciones puras
         |
         v
-errorHandler → 400 VALIDACION or ID_INVALIDO, 404 NO_ENCONTRADO,
+errorHandler → 400 VALIDACION o ID_INVALIDO, 404 NO_ENCONTRADO,
                409 CONFLICTO, 500 INESPERADO
 ```
 
-Models do not own business rules, services do not write HTTP, and `dominio/` does not import Mongoose. The web app is a static site and uses hash routing so a game page works without server rewrites.
+Los modelos no guardan las reglas de negocio, los servicios no escriben HTTP y `dominio/` no importa Mongoose. La web es un sitio estático y usa el hash en la URL para que la ficha de un juego funcione sin rewrites del servidor.
 
-### Run locally and test
+### Cómo correrlo y probarlo
 
-MongoDB is required to boot the API. `npm test` does not open a database.
+MongoDB hace falta para arrancar la API. `npm test` no abre una base de datos.
 
 ```bash
 cd backend
-cp .env.example .env   # set MONGODB_URI locally; never commit .env
+cp .env.example .env   # MONGODB_URI en local; nunca commitear .env
 npm ci
 npm test               # Vitest
 npm run typecheck      # tsc --noEmit
@@ -52,28 +52,28 @@ npm run dev            # http://localhost:5174
 npm run build          # tsc + Vite
 ```
 
-Static checking is the TypeScript compiler. GitHub Actions ([`.github/workflows/ci.yml`](./.github/workflows/ci.yml)) runs backend typecheck and tests, and the frontend production build, on pull requests and on `main`.
+El chequeo estático es el compilador de TypeScript. GitHub Actions ([`.github/workflows/ci.yml`](./.github/workflows/ci.yml)) corre el typecheck y los tests del backend, y el build de producción del frontend, en cada pull request y en `main`.
 
-### Live demo
+### Demo en vivo
 
 - App: https://diario-gamer-web-55fd.onrender.com/
 - API: https://diario-gamer-api-3lsk.onrender.com
-- Route the Render health check already probes: https://diario-gamer-api-3lsk.onrender.com/api/videojuegos
-- Liveness, once this branch is deployed: https://diario-gamer-api-3lsk.onrender.com/health
+- Ruta que el health check de Render ya consulta: https://diario-gamer-api-3lsk.onrender.com/api/videojuegos
+- Vida del proceso, cuando esta rama esté desplegada: https://diario-gamer-api-3lsk.onrender.com/health
 
-`GET /` responds 404 (unknown route). `GET /health` returns `{ "status": "ok" }` and does not query MongoDB. [`render.yaml`](./render.yaml) keeps `healthCheckPath: /api/videojuegos`.
+`GET /` responde 404 (ruta desconocida). `GET /health` devuelve `{ "status": "ok" }` y no consulta MongoDB. [`render.yaml`](./render.yaml) mantiene `healthCheckPath: /api/videojuegos`.
 
-### How the AI-assisted work is structured
+### Cómo está armado el trabajo con el agente
 
-Weekly goals and streaks followed a spec-driven loop. One product rule can be traced from the PRD to a test:
+Metas semanales y rachas siguieron un ciclo con spec. Una regla de producto se puede seguir desde el PRD hasta un test:
 
-1. **PRD** — product rules, no implementation detail: [`docs/prd/prd-e2-metas-y-rachas.md`](./docs/prd/prd-e2-metas-y-rachas.md)
-2. **Specs** — committed before the code that implements them: [`docs/specs/`](./docs/specs/)
-3. **Agent rules** — [`AGENTS.md`](./AGENTS.md) (layers, error types, no `.env`, timezone, tests before a task is done)
-4. **Cursor hooks** — [`.cursor/hooks.json`](./.cursor/hooks.json). `.cursor/hooks/auto-commit.sh` commits only when `DIARIO_AUTO_COMMIT=1`. Left off, an edit-by-edit commit crowded the history and could record unfinished work. Existing commits were left as they are.
-5. **Tests** — pure domain cases in `backend/src/dominio/progreso.test.ts`, plus HTTP and service tests that stay deterministic without MongoDB.
+1. **PRD** — reglas de producto, sin detalle de implementación: [`docs/prd/prd-e2-metas-y-rachas.md`](./docs/prd/prd-e2-metas-y-rachas.md)
+2. **Specs** — se commitean antes del código que las implementa: [`docs/specs/`](./docs/specs/)
+3. **Reglas del agente** — [`AGENTS.md`](./AGENTS.md) (capas, tipos de error, no tocar `.env`, zona horaria, tests antes de cerrar una tarea)
+4. **Hooks de Cursor** — [`.cursor/hooks.json`](./.cursor/hooks.json). `.cursor/hooks/auto-commit.sh` solo commitea si `DIARIO_AUTO_COMMIT=1`. Sin esa variable, un commit por cada edición llenaba el historial y podía guardar trabajo a medias. Los commits ya publicados se dejaron como estaban.
+5. **Tests** — casos puros de dominio en `backend/src/dominio/progreso.test.ts`, más tests HTTP y de servicio que siguen siendo deterministas sin MongoDB.
 
-A short retrospective, including one spec miss found in the live JSON, is in [`docs/bitacora-agente.md`](./docs/bitacora-agente.md). The Spanish sections below are the original project docs.
+Una retrospectiva corta, con una desviación de spec vista en el JSON público, está en [`docs/bitacora-agente.md`](./docs/bitacora-agente.md). Lo que sigue es la documentación original del proyecto.
 
 ---
 

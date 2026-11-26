@@ -16,7 +16,7 @@ export function crearApp(corsOrigin: string): express.Express {
   app.use(cors({ origin: corsOrigin }));
   app.use(express.json());
 
-  // Liveness sin MongoDB. Render sigue en /api/videojuegos (render.yaml).
+  // Vida del proceso, sin MongoDB. Render sigue en /api/videojuegos (render.yaml).
   app.get("/health", (_req, res) => {
     res.status(200).json({ status: "ok" });
   });
