@@ -1,6 +1,15 @@
 #!/usr/bin/env bash
-# Auto-commit after any file edit (agent or Tab). Fail-open: never block the editor.
+# Opt-in auto-commit after a file edit (agent or Tab). Fail-open: never block the editor.
+#
+# Disabled unless DIARIO_AUTO_COMMIT=1. Committing on every edit produced noisy
+# history, could record unfinished work, and hid the intentional messages this
+# repo uses (spec before code, feat(E2): T-0x). Existing commits are left as-is.
+# Enable for one session by exporting DIARIO_AUTO_COMMIT=1 before starting Cursor.
 set -u
+
+if [[ "${DIARIO_AUTO_COMMIT:-}" != "1" ]]; then
+  exit 0
+fi
 
 input="$(cat || true)"
 
