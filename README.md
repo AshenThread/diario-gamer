@@ -1,5 +1,82 @@
 # Diario de Progreso Gamer
 
+## For reviewers
+
+Personal game diary, used here as a software-engineering sample: an Express + TypeScript REST API on MongoDB, and a React client. You record games, play sessions, weekly goals, and streaks. This pass adds a liveness route, tests above the domain layer, CI, and a safer agent hook. Game, session, goal, and streak behavior stays as specified in the PRD.
+
+### Stack
+
+- **API:** Node.js ≥ 20, Express 5, TypeScript, Mongoose, MongoDB Atlas
+- **Web:** React 18, TypeScript, Vite
+- **Tests:** Vitest. Domain rules run with no database; HTTP and service tests mock the service boundary or Mongoose
+- **Deploy:** Render web service + static site ([`render.yaml`](./render.yaml))
+- **Week and streaks:** `America/Guayaquil`
+
+### Architecture
+
+```text
+Browser (React + Vite)
+        |  VITE_API_URL
+        v
+crearApp — requestId, logger, CORS, JSON
+        |-- GET /health                         liveness, no database
+        |-- /api/videojuegos | /api/partidas | /api/metas
+        v
+controllers → services → Mongoose models → MongoDB
+                 |
+                 +→ dominio/progreso.ts         pure hours, streaks, milestones
+        |
+        v
+errorHandler → 400 VALIDACION or ID_INVALIDO, 404 NO_ENCONTRADO,
+               409 CONFLICTO, 500 INESPERADO
+```
+
+Models do not own business rules, services do not write HTTP, and `dominio/` does not import Mongoose. The web app is a static site and uses hash routing so a game page works without server rewrites.
+
+### Run locally and test
+
+MongoDB is required to boot the API. `npm test` does not open a database.
+
+```bash
+cd backend
+cp .env.example .env   # set MONGODB_URI locally; never commit .env
+npm ci
+npm test               # Vitest
+npm run typecheck      # tsc --noEmit
+npm run dev            # http://localhost:3001
+
+cd ../frontend
+cp .env.example .env   # VITE_API_URL=http://localhost:3001
+npm ci
+npm run dev            # http://localhost:5174
+npm run build          # tsc + Vite
+```
+
+Static checking is the TypeScript compiler. GitHub Actions ([`.github/workflows/ci.yml`](./.github/workflows/ci.yml)) runs backend typecheck and tests, and the frontend production build, on pull requests and on `main`.
+
+### Live demo
+
+- App: https://diario-gamer-web-55fd.onrender.com/
+- API: https://diario-gamer-api-3lsk.onrender.com
+- Route the Render health check already probes: https://diario-gamer-api-3lsk.onrender.com/api/videojuegos
+- Liveness, once this branch is deployed: https://diario-gamer-api-3lsk.onrender.com/health
+
+`GET /` responds 404 (unknown route). `GET /health` returns `{ "status": "ok" }` and does not query MongoDB. [`render.yaml`](./render.yaml) keeps `healthCheckPath: /api/videojuegos`.
+
+### How the AI-assisted work is structured
+
+Weekly goals and streaks followed a spec-driven loop. One product rule can be traced from the PRD to a test:
+
+1. **PRD** — product rules, no implementation detail: [`docs/prd/prd-e2-metas-y-rachas.md`](./docs/prd/prd-e2-metas-y-rachas.md)
+2. **Specs** — committed before the code that implements them: [`docs/specs/`](./docs/specs/)
+3. **Agent rules** — [`AGENTS.md`](./AGENTS.md) (layers, error types, no `.env`, timezone, tests before a task is done)
+4. **Cursor hooks** — [`.cursor/hooks.json`](./.cursor/hooks.json). `.cursor/hooks/auto-commit.sh` commits only when `DIARIO_AUTO_COMMIT=1`. Left off, an edit-by-edit commit crowded the history and could record unfinished work. Existing commits were left as they are.
+5. **Tests** — pure domain cases in `backend/src/dominio/progreso.test.ts`, plus HTTP and service tests that stay deterministic without MongoDB.
+
+A short retrospective, including one spec miss found in the live JSON, is in [`docs/bitacora-agente.md`](./docs/bitacora-agente.md). The Spanish sections below are the original project docs.
+
+---
+
 Diario personal para registrar videojuegos, sesiones de juego, horas,
 porcentaje de avance y logros. El proyecto combina una API REST en Express
 con TypeScript, MongoDB mediante Mongoose y una interfaz React con Vite.
@@ -109,6 +186,14 @@ resumen, por lo que los datos se actualizan inmediatamente.
 
 ## API REST
 
+### Estado del servicio
+
+| Método | Ruta | Función |
+| --- | --- | --- |
+| GET | `/health` | Liveness. Responde `{ "status": "ok" }` sin consultar MongoDB. |
+
+`GET /` responde 404. El `healthCheckPath` de Render sigue en `/api/videojuegos`.
+
 ### Videojuegos
 
 | Método | Ruta | Función |
@@ -189,12 +274,16 @@ El seed es idempotente y carga los siete juegos y sus sesiones iniciales:
 cd backend && npm run seed
 ```
 
-Validación de compilación:
+Validación de compilación. `npm test` no abre MongoDB: el dominio es puro y
+los tests de rutas y servicios sustituyen Mongoose.
 
 ```bash
 cd frontend && npm run build
 cd ../backend && npm test && npm run typecheck && npm run build
 ```
+
+En cada pull request y en `main`, el workflow [`.github/workflows/ci.yml`](./.github/workflows/ci.yml)
+ejecuta ese typecheck, los tests del backend y el build del frontend.
 
 Documentación SDD de E2: [`docs/`](./docs/) (diagnóstico, PRD, backlog, specs, [AUDITORIA](./docs/AUDITORIA.md)).
 
@@ -220,6 +309,11 @@ diagnóstico → harness → PRD → épica → historias → criterios → tick
 Reglas clave del harness: no tocar `.env` (solo `.env.example`), no código sin
 spec en `docs/specs/`, tests de dominio verdes antes de cerrar un ticket, zona
 `America/Guayaquil` para semana y rachas.
+
+El hook `.cursor/hooks/auto-commit.sh` solo crea commits si
+`DIARIO_AUTO_COMMIT=1`. Por defecto no commitea: un commit en cada edición
+llenaba el historial de mensajes genéricos y podía guardar trabajo a medias.
+Los commits ya publicados se dejaron como estaban.
 
 ### Flujo seguido
 
